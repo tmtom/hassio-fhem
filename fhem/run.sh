@@ -44,11 +44,17 @@ mkdir -p "${FHEM_DIR}"
 #-----------------------------------------------------------------------------
 if [ ! -f "${FHEM_DIR}/fhem.pl" ]; then
   log "First start: seeding pinned FHEM into ${FHEM_DIR}"
-  # -n: never overwrite files the user already placed in the volume.
+  # Remember a config the user placed in the volume before the first start;
+  # the frozen tree itself carries FHEM's stock fhem.cfg which is replaced by
+  # our generic seed below. -n: never overwrite user files.
+  USER_CFG_PRESENT=0
+  [ -f "${FHEM_DIR}/fhem.cfg" ] && USER_CFG_PRESENT=1
   cp -an /usr/src/fhem-frozen/. "${FHEM_DIR}/"
-fi
-
-if [ ! -f "${FHEM_DIR}/fhem.cfg" ]; then
+  if [ "${USER_CFG_PRESENT}" = 0 ]; then
+    log "Installing generic seed configuration fhem.cfg"
+    cp /usr/src/templates/fhem.cfg.seed "${FHEM_DIR}/fhem.cfg"
+  fi
+elif [ ! -f "${FHEM_DIR}/fhem.cfg" ]; then
   log "No fhem.cfg found: installing generic seed configuration"
   cp /usr/src/templates/fhem.cfg.seed "${FHEM_DIR}/fhem.cfg"
 fi

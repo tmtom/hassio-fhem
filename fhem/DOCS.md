@@ -90,8 +90,9 @@ attr MAX_bedroom_valve mqttPublish *:topic={"$base/$device/$name"}
 attr MAX_bedroom_valve mqttSubscribe desiredTemperature:stopic={"$base/$device/set"}
 ```
 
-`actCycle 12:00` matters: fhemMAX2HASS uses it for Home Assistant availability
-handling. See `fhemMAX2HASSdiscovery` in
+`actCycle 12:00` matters for two reasons: the `Activity` reading it creates is
+what triggers the discovery DOIF above, and after 12 hours of inactivity the
+device is marked unavailable in Home Assistant. See `fhemMAX2HASSdiscovery` in
 [fhemMAX2HASS](https://github.com/danielrheinbay/fhemMAX2HASS) for details.
 
 ## Porting an existing FHEM config
@@ -168,6 +169,10 @@ Home Assistant app updates and FHEM updates are **separate things**:
 - **Watchdog turns the app unhealthy:** FHEM starts slowly on first boot; the
   watchdog checks `http://[HOST]:[PORT:8083]/fhem`. Check the log tab for
   startup errors.
+- **Scripting FHEMWEB commands (`?cmd=...`):** FHEM 6.x requires a CSRF token
+  for commands. Either fetch and pass the token (`fwcsrf` parameter) or, for
+  trusted local setups, disable it on the FHEMWEB definition:
+  `attr WEB csrfToken none`.
 
 ## Licensing
 
