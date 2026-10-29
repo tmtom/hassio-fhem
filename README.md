@@ -57,3 +57,6 @@ is built on the device during installation.
   AGPL-3.0 (license text included in the image)
 - [FHEM](https://fhem.de) (GPL) is redistributed inside the image via the
   official [fhem-docker](https://github.com/fhem/fhem-docker) base image
+- Icon/logo: the official FHEM logo from
+  [fhem-mirror](https://github.com/fhem/fhem-mirror/blob/main/fhem/docs/fhem.svg)
+  (GPL-2.0 project), used to identify this FHEM app

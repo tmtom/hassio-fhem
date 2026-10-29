@@ -182,3 +182,6 @@ Home Assistant app updates and FHEM updates are **separate things**:
   official [fhem-docker](https://github.com/fhem/fhem-docker) base image and
   the pinned [fhem.de](https://fhem.de) release tarball. Source:
   https://fhem.de and https://svn.fhem.de.
+- The app icon/logo is the official FHEM logo taken from
+  [fhem-mirror](https://github.com/fhem/fhem-mirror/blob/main/fhem/docs/fhem.svg)
+  (GPL-2.0 project), used to identify this FHEM app.
