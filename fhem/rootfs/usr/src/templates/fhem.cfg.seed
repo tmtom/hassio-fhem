@@ -1,0 +1,35 @@
+# Generic FHEM seed configuration for the hassio-fhem app.
+#
+# Installed once by /run.sh when the app config folder (/opt/fhem) contains no
+# fhem.cfg yet. It is a clean stock setup with no personal devices or rooms —
+# port your own configuration as described in DOCS.md
+# ("Porting an existing FHEM config").
+#
+# /run.sh regenerates /opt/fhem/mqtt-connection.cfg on every start with the MQTT
+# broker credentials (Supervisor mqtt service or the manual mqtt_* options).
+
+attr global autoload_undefined_devices 1
+attr global logfile ./log/fhem-%Y-%m-%d.log
+attr global modpath .
+attr global statefile ./log/fhem.save
+attr global userattr cmdIcon devStateIcon:textField-long devStateStyle icon mqttAlias:textField-long mqttDefaults:textField-long mqttDisable:both,incoming,outgoing mqttForward:all,none mqttPublish:textField-long mqttSubscribe:textField-long sortby webCmd webCmdLabel:textField-long widgetOverride
+attr global verbose 3
+
+define WEB FHEMWEB 8083 global
+
+# Fake FileLog entry, to access the fhem log from FHEMWEB
+define Logfile FileLog ./log/fhem-%Y-%m-%d.log Logfile
+
+define autocreate autocreate
+attr autocreate filelog ./log/%NAME-%Y.log
+
+define eventTypes eventTypes ./log/eventTypes.txt
+
+# ---------------------------------------------------------------------------
+# MQTT bridge to Home Assistant (see DOCS.md)
+#
+# The app generates /opt/fhem/mqtt-connection.cfg on every start with a ready
+# `define mqtt MQTT2_CLIENT ...` line. To use it, uncomment the next line and
+# add the MQTT_GENERIC_BRIDGE / fhemMAX2HASS definitions from DOCS.md:
+#
+#include mqtt-connection.cfg

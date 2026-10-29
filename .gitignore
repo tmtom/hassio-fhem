@@ -1,0 +1,7 @@
+# Local artifacts
+*.log
+*.bak
+.DS_Store
+
+# Never commit personal FHEM configuration
+fhem.cfg.tm

@@ -1,0 +1,81 @@
+#include <tunables/global>
+
+# AppArmor profile for the FHEM app (https://github.com/tmtom/hassio-fhem).
+# The Supervisor renames this profile to the app's slug when installing it.
+#
+# Note: the FHEM base image's entry.sh runs as root and manages users, file
+# permissions and serial devices, so this profile is broad in places. It is a
+# starting point, validated against the stock image; if you hit denials, see
+# "Security notes" in DOCS.md for the `apparmor: false` fallback.
+
+profile fhem_app flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+
+  # entry.sh needs to create the fhem user, chown /opt/fhem and /dev nodes.
+  capability,
+  file,
+  signal,
+  mount,
+  umount,
+  remount,
+
+  network tcp,
+  network udp,
+  network inet,
+  network inet6,
+  network netlink raw,
+  network unix dgram,
+  network unix stream,
+
+  # Entrypoints and interpreters
+  /run.sh ix,
+  /entry.sh ix,
+  /health-check.sh ix,
+  /bin/** ix,
+  /sbin/** ix,
+  /usr/bin/** ix,
+  /usr/sbin/** ix,
+  /usr/local/bin/** ix,
+  /usr/lib/** mr,
+  /usr/libexec/** ix,
+
+  # FHEM runtime (persistent volume) and the bundled seed sources
+  /opt/fhem/** rwkl,
+  /usr/src/** mr,
+
+  # Files entry.sh touches while managing users and the environment
+  /etc/passwd rw,
+  /etc/passwd.orig rw,
+  /etc/shadow rw,
+  /etc/shadow.orig rw,
+  /etc/group rw,
+  /etc/group.orig rw,
+  /etc/gshadow rw,
+  /etc/gshadow.orig rw,
+  /etc/resolv.conf r,
+  /etc/hosts rw,
+  /etc/hostname rw,
+  /etc/localtime r,
+  /usr/share/zoneinfo/** r,
+
+  # Serial devices (NanoCUL) — mapped by `uart: true` / the `device` option
+  /dev/tty rw,
+  /dev/ttyUSB* rwkl,
+  /dev/ttyACM* rwkl,
+  /dev/ttyS* rwkl,
+  /dev/serial/by-id/* rwkl,
+  /dev/serial/by-path/* rwkl,
+
+  # Device nodes, temp and run-time files (entry.sh chown/chmod passes)
+  /dev/* mrwkl,
+  /tmp/** mrkwl,
+  /run/** mrkwl,
+  /var/run/** mrkwl,
+  /var/log/** rwkl,
+
+  # Suppress ptrace denials when using 'docker ps' or 'ps' inside a container
+  ptrace (trace,read) peer=docker-default,
+
+  # Docker daemon confinement requires an explicit allow rule for signals
+  signal (receive) set=(kill,term) peer=/usr/bin/docker,
+}
