@@ -57,6 +57,15 @@ This is only a listing: no device is opened or reconfigured. FHEM communicates
 exclusively with the device referenced in your `define CUL0 CUL ...` (if any) —
 other serial devices present (Zigbee sticks, meter readers, …) stay untouched.
 
+Note on device paths: the `device` dropdown is populated by Home Assistant
+(Supervisor) from the host's udev database and lists the stable
+`/dev/serial/by-id/...` links. Custom udev symlinks (e.g. `/dev/nanocul` via
+`SYMLINK+="nanocul"`) are not shown in the dropdown, but they work fine in
+`fhem.cfg`: the host's `/dev` is mounted into the container and the option
+validator accepts any udev-managed link. For adapters without a USB serial
+number (identical by-id names), `udev`'s `/dev/serial/by-path/...` links or a
+custom `SYMLINK+=` rule keyed on the USB port path are the robust choices.
+
 ## MQTT bridge to Home Assistant (MAX!)
 
 A complete MQTT → Home Assistant setup for MAX! devices consists of (all in
