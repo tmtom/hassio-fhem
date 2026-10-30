@@ -142,6 +142,15 @@ what triggers the discovery DOIF above, and after 12 hours of inactivity the
 device is marked unavailable in Home Assistant. See `fhemMAX2HASSdiscovery` in
 [fhemMAX2HASS](https://github.com/danielrheinbay/fhemMAX2HASS) for details.
 
+Discovery is **event-driven**: it runs when a device reports `Activity`, i.e.
+when the device actually sends something (open a window, press a button on a
+thermostat) — not at FHEM startup. To publish discovery for all MAX! devices
+right after startup as well, add:
+
+```perl
+define hass.MAXdiscoveryBoot notify global:INITIALIZED {foreach (devspec2array("TYPE=MAX")) { MAX2HASSdiscovery($_); } return "";}
+```
+
 ## Porting an existing FHEM config
 
 The app ships a clean stock config; you port your own `fhem.cfg` into the app
@@ -216,7 +225,10 @@ Home Assistant app updates and FHEM updates are **separate things**:
   is required. Fallback: `mqtt_automatic: false` plus manual `mqtt_*` options.
 - **No entities in Home Assistant:** the discovery messages need the
   MQTT bridge snippet above, device `mqttPublish`/`mqttSubscribe` attributes,
-  and device activity (fhemMAX2HASS publishes on `:Activity` events).
+  and device activity (fhemMAX2HASS publishes on `:Activity` events). Trigger
+  one: open a window or press a button on a thermostat, or run
+  `setreading <device> Activity alive` in FHEMWEB (the same event the MAX!
+  modules generate).
 - **Watchdog turns the app unhealthy:** FHEM starts slowly on first boot; the
   watchdog checks `http://[HOST]:[PORT:8083]/fhem`. The app's health check
   probes the same URL, so FHEMWEB must listen on port 8083 (the port exposed
