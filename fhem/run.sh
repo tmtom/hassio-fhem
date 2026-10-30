@@ -144,9 +144,19 @@ if [ -n "${MQTT_HOST}" ]; then
 # Use it from your fhem.cfg with:  include mqtt-connection.cfg
 # (or copy the lines below into your own mqtt device definition).
 #
-# Note: MQTT credentials must not contain whitespace.
+# Note: MQTT2_CLIENT takes credentials via 'attr mqtt username' and
+# 'set mqtt password' (stored in FHEM/FhemUtils/uniqueID), not as define
+# arguments. Passwords must not contain whitespace.
 
-define mqtt MQTT2_CLIENT ${MQTT_HOST}:${MQTT_PORT} ${MQTT_USER} ${MQTT_PASS}
+define mqtt MQTT2_CLIENT ${MQTT_HOST}:${MQTT_PORT}
+EOF
+  if [ -n "${MQTT_USER}" ]; then
+    cat >> "${FHEM_DIR}/mqtt-connection.cfg" <<EOF
+attr mqtt username ${MQTT_USER}
+set mqtt password ${MQTT_PASS}
+EOF
+  fi
+  cat >> "${FHEM_DIR}/mqtt-connection.cfg" <<EOF
 attr mqtt lwt homeassistant/binary_sensor/fhem/availability offline
 attr mqtt lwtRetain 1
 attr mqtt msgAfterConnect -r homeassistant/binary_sensor/fhem/availability online
@@ -161,8 +171,13 @@ else
 # No MQTT broker was configured at startup. Set the manual mqtt_* options or
 # install an MQTT broker app (e.g. Mosquitto) offering the mqtt service, then
 # uncomment and adapt the following lines:
+#
+# (MQTT2_CLIENT takes credentials via 'attr mqtt username' and
+#  'set mqtt password', not as define arguments.)
 
-#define mqtt MQTT2_CLIENT host:port user password
+#define mqtt MQTT2_CLIENT host:port
+#attr mqtt username user
+#set mqtt password password
 #attr mqtt lwt homeassistant/binary_sensor/fhem/availability offline
 #attr mqtt lwtRetain 1
 #attr mqtt msgAfterConnect -r homeassistant/binary_sensor/fhem/availability online

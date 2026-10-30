@@ -103,7 +103,12 @@ A complete MQTT → Home Assistant setup for MAX! devices consists of (all in
 
 ```perl
 # 1. The broker connection (or: include mqtt-connection.cfg)
-define mqtt MQTT2_CLIENT core-mosquitto:1883 <user> <password>
+#    Note: MQTT2_CLIENT takes credentials via 'attr mqtt username' and
+#    'set mqtt password' (stored in FHEM/FhemUtils/uniqueID) — not as
+#    define arguments. Passwords must not contain whitespace.
+define mqtt MQTT2_CLIENT core-mosquitto:1883
+attr mqtt username <user>
+set mqtt password <password>
 attr mqtt lwt homeassistant/binary_sensor/fhem/availability offline
 attr mqtt lwtRetain 1
 attr mqtt msgAfterConnect -r homeassistant/binary_sensor/fhem/availability online

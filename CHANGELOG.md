@@ -4,6 +4,17 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.1.4 (2026-10-30)
+
+- **Fix MQTT authentication:** `MQTT2_CLIENT` only takes `host:port` as the
+  define argument — credentials passed on the `define` line were silently
+  ignored and FHEM connected anonymously (rejected by brokers requiring auth,
+  e.g. the Mosquitto app's service user). `mqtt-connection.cfg` now generates
+  `attr mqtt username` + `set mqtt password` (the module's real credential
+  mechanism; the password is stored in `FHEM/FhemUtils/uniqueID`). Found by
+  the first authenticated on-HA run — the WSL test broker allowed anonymous
+  connections, which masked it.
+
 ## 0.1.3 (2026-10-30)
 
 - **Backups fix:** `backup_exclude: ["log/*"]` also excluded the FHEM state
