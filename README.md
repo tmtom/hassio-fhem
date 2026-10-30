@@ -10,8 +10,9 @@ from the app's info page.
 
 ## Features
 
-- **FHEMWEB** on port 8083 with an **Open Web UI** button and Supervisor
-  watchdog monitoring.
+- **FHEMWEB** on port 8083 with an **Open Web UI** button, health monitoring
+  and an optional web login — which also enables the built-in config editor
+  (*Edit files*, applies on save without a restart).
 - **MAX! via NanoCUL** (CUL + CUL_MAX) — serial device access for
   `/dev/serial/by-id/...`, with an optional device picker to pin the adapter.
 - **MQTT bridge** with automatic broker credential discovery from the
@@ -20,12 +21,15 @@ from the app's info page.
   [fhemMAX2HASS](https://github.com/danielrheinbay/fhemMAX2HASS) helper —
   climate entities (eco/comfort/boost), window sensors, battery/signal
   diagnostics, availability.
+- **Pre-built multi-arch images** from GitHub Actions — installs and updates
+  pull from GHCR in seconds, no build on the device.
 - **Persistent configuration** in the app config folder
   (`/addon_configs/<repo>_fhem`), included in Home Assistant backups.
 - **Pinned FHEM release** (6.5) seeded on first start — reproducible installs,
   updates via FHEM's own `update` command.
 - Clean stock configuration — bring your own FHEM config with the included
-  porting guide.
+  porting guide. Options come with readable labels and hints in the
+  Configuration tab; timezone follows Home Assistant automatically.
 
 ## Supported architectures
 
@@ -36,19 +40,40 @@ Assistant app configs).
 
 Add this repository in **Settings → Apps → ⋮ → Repositories**
 (`https://github.com/tmtom/hassio-fhem`), install **FHEM** and see the
-Documentation tab, or read [`fhem/DOCS.md`](fhem/DOCS.md) — it covers the
-options, the MQTT setup, how to port an existing FHEM configuration, update
-behavior and security notes.
+Documentation tab, or read [`fhem/DOCS.md`](fhem/DOCS.md). The full reference
+— options, MQTT setup, porting an existing FHEM configuration, update
+behavior, security notes, troubleshooting — is in
+[`fhem/USER_GUIDE.md`](fhem/USER_GUIDE.md).
 
 ## Repository layout
 
-- `fhem/` — the app (manifest, Dockerfile, entrypoint, docs)
+- `fhem/` — the app: manifest, Dockerfile, entrypoint, docs (`README`,
+  `DOCS`, `USER_GUIDE`, `CHANGELOG`), translations
+- `AGENTS.md` — project knowledge for contributors (and AI agents): architecture,
+  hard-won FHEM facts, testing, release procedure
+- `.github/workflows/` — CI: multi-arch image builds to GHCR, lint, automated
+  FHEM version bumps
 - `repository.yaml` — repository metadata for the Supervisor
 
 ## Development
 
-Pre-built images (`ghcr.io/tmtom/hassio-fhem`) are planned; until then the app
-is built on the device during installation.
+Pre-built multi-arch images (`ghcr.io/tmtom/hassio-fhem`) are built by GitHub
+Actions on every release (amd64 + aarch64, published to GHCR) — installs and
+updates pull the image instead of building on the device.
+
+High-level flow (details in [`AGENTS.md`](AGENTS.md)):
+
+1. **Debug locally** with the Docker test rig — CI is validation, not a
+   debugger.
+2. **Branch + PR** for app content: CI builds both architectures and lints,
+   without publishing.
+3. **Merge to `main` = release**: version bump + `fhem/CHANGELOG.md` entry +
+   doc links + tag — CI builds and publishes automatically. The scheduled
+   `bump-fhem` workflow keeps the FHEM/base-image pins current via pull
+   requests.
+
+Read [`AGENTS.md`](AGENTS.md) before contributing — it documents the
+architecture, the FHEM pitfalls already paid for, and the release procedure.
 
 ## Licensing
 
