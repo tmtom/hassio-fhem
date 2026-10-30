@@ -4,6 +4,16 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.1.1 (2026-10-30)
+
+- Fix MQTT credential auto-discovery on real Home Assistant: the Supervisor
+  services API wraps its payload in `{"result": ..., "data": {...}}` — parse
+  that envelope (flat responses still accepted) and only claim success when a
+  broker host was actually returned (found by the first on-HA test run).
+- Docs: note that optional options (like the `device` dropdown) are hidden
+  behind **Show unused optional configuration options**; clarify that the
+  startup serial-device listing does not touch the devices.
+
 ## 0.1.0 (unreleased)
 
 - Initial MVP of the FHEM app for Home Assistant.

@@ -88,16 +88,24 @@ if [ "$(opt mqtt_automatic true)" = "true" ] && [ -n "${SUPERVISOR_TOKEN:-}" ]; 
       open my $fh, "<", $file or exit 0;
       my $raw = do { local $/; <$fh> };
       my $json = eval { JSON::PP::decode_json($raw) } or exit 0;
+      # The Supervisor API wraps payloads in {"result": ..., "data": {...}};
+      # accept a flat object as well.
+      $json = $json->{data} if ref $json eq "HASH" && ref $json->{data} eq "HASH";
+      ref $json eq "HASH" or exit 0;
       my %map = (MQTT_HOST => "host", MQTT_PORT => "port",
                  MQTT_USER => "username", MQTT_PASS => "password");
       for my $var (sort keys %map) {
         my $v = $json->{ $map{$var} };
-        next unless defined $v;
+        next unless defined $v && !ref $v;
         $v =~ s/'"'"'/\\'"'"'/g;
         print "$var='"'"'$v'"'"'\n";
       }
     ' /tmp/mqtt-service.json)"
-    log "MQTT broker discovered via Supervisor services API (${MQTT_HOST:-?}:${MQTT_PORT:-?})"
+    if [ -n "${MQTT_HOST}" ]; then
+      log "MQTT broker discovered via Supervisor services API (${MQTT_HOST}:${MQTT_PORT})"
+    else
+      log "Supervisor MQTT service returned no usable host — using manual mqtt_* options"
+    fi
   else
     log "Supervisor MQTT service unavailable — using manual mqtt_* options"
   fi

@@ -28,7 +28,7 @@ Home Assistant over **MQTT** (including Home Assistant MQTT discovery).
 
 | Option | Default | Description |
 |---|---|---|
-| `device` | *(unset)* | Serial device of the NanoCUL (dropdown of `/dev/serial/by-id/...` paths). Optional: `uart: true` already maps serial devices; set it to pin a specific one. |
+| `device` | *(unset)* | Serial device of the NanoCUL (dropdown of `/dev/serial/by-id/...` paths). Optional options are hidden in the UI — enable **Show unused optional configuration options** to see it. `uart: true` already maps serial devices; setting this pins a specific one. |
 | `mqtt_automatic` | `true` | Discover the MQTT broker via the Supervisor `mqtt` service (recommended with the Mosquitto app). |
 | `mqtt_host` | *(empty)* | Manual broker host (fallback when `mqtt_automatic` is `false` or discovery fails). Other apps reach Mosquitto as `core-mosquitto`. |
 | `mqtt_port` | `1883` | Manual broker port. |
@@ -53,6 +53,9 @@ definition (credentials must not contain whitespace).
 
 On startup, the app logs the serial devices visible in the container
 (`/dev/serial/by-id/...`) — useful when defining the CUL device in `fhem.cfg`.
+This is only a listing: no device is opened or reconfigured. FHEM communicates
+exclusively with the device referenced in your `define CUL0 CUL ...` (if any) —
+other serial devices present (Zigbee sticks, meter readers, …) stay untouched.
 
 ## MQTT bridge to Home Assistant (MAX!)
 
