@@ -1,5 +1,5 @@
 name: FHEM
-version: "0.2.1-fhem6.5"
+version: "0.2.2-fhem6.5"
 slug: fhem
 description: FHEM home automation — MAX! via NanoCUL, bridged to HA over MQTT
 url: https://github.com/tmtom/hassio-fhem/tree/main/fhem
@@ -28,6 +28,10 @@ map:
     read_only: false
 services:
   - mqtt:want
+# homeassistant_api: read Home Assistant's timezone via the Core API proxy so
+# FHEM's clock (and the MAX! weekly programs) follow your HA setting. Read-only
+# usage in run.sh; the hidden 'timezone' option overrides it.
+homeassistant_api: true
 options:
   mqtt_automatic: true
   mqtt_host: ""
@@ -36,11 +40,8 @@ options:
   mqtt_password: ""
   fhemmax2hass: true
   fhem_url: http://homeassistant.local:8083/fhem
-  timezone: Europe/Prague
   web_auth_user: ""
   web_auth_password: ""
-  web_edit_config: false
-  fhem_cfg: ""
 schema:
   device: device(subsystem=tty)?
   mqtt_automatic: bool
@@ -50,10 +51,9 @@ schema:
   mqtt_password: password
   fhemmax2hass: bool
   fhem_url: str
-  timezone: str
   web_auth_user: str
   web_auth_password: password
-  web_edit_config: bool
+  timezone: str?
   fhem_cfg: str?
 backup: cold
 backup_exclude:

@@ -4,6 +4,23 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.2 (2026-10-30)
+
+- **Config editing follows the FHEMWEB login:** the `web_edit_config` option is
+  gone — the "Edit files" editor is enabled automatically whenever
+  `web_auth_user`/`web_auth_password` are set (and never without a login).
+- **Timezone follows Home Assistant:** the app reads HA's timezone via the
+  Core API (`homeassistant_api: true`, read-only usage; hidden `timezone`
+  option overrides). The personal `Europe/Prague` default is gone.
+- **Translations:** readable names and descriptions for all options and ports
+  in the Configuration tab (`translations/en.yaml`).
+- **Docs split:** the Documentation tab is now a short setup guide; the full
+  documentation (options reference, MQTT bridge, porting guide,
+  troubleshooting) lives in `USER_GUIDE.md` on GitHub.
+- Removed remaining personal-setup defaults; `.gitignore` now covers all
+  personal `fhem.cfg.*` files (the shipped `fhem.cfg.seed` template stays
+  tracked).
+
 ## 0.2.1 (2026-10-30)
 
 - **Fix `web_edit_config` for file-based configs:** `web-auth.cfg` was only

@@ -4,4 +4,4 @@
 .DS_Store
 
 # Never commit personal FHEM configuration
-fhem.cfg.tm
+/fhem.cfg.*

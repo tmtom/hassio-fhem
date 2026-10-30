@@ -36,8 +36,35 @@ opt() {
   ' "$OPTIONS_FILE" "$1" "$2"
 }
 
-export TZ="$(opt timezone Europe/Prague)"
-log "Timezone: ${TZ}"
+# Timezone: the explicit option wins; otherwise follow Home Assistant's
+# setting (Core API, read-only); last resort UTC. FHEM's clock is what the MAX!
+# thermostats sync their weekly program to, so this needs to be right.
+TZ_OPT="$(opt timezone '')"
+if [ -n "${TZ_OPT}" ]; then
+  export TZ="${TZ_OPT}"
+  log "Timezone (option): ${TZ}"
+else
+  TZ_HA=""
+  if [ -n "${SUPERVISOR_TOKEN:-}" ]; then
+    TZ_HA="$(curl -fsS -m 10 -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+      "http://supervisor/core/api/config" -o /tmp/ha-config.json 2>/dev/null \
+      && perl -MJSON::PP -e '
+        open my $fh, "<", "/tmp/ha-config.json" or exit 1;
+        my $raw = do { local $/; <$fh> };
+        my $json = eval { JSON::PP::decode_json($raw) } or exit 1;
+        my $tz = $json->{time_zone};
+        print $tz if defined $tz && !ref $tz;
+      ' 2>/dev/null || true)"
+  fi
+  if [ -n "${TZ_HA}" ]; then
+    export TZ="${TZ_HA}"
+    log "Timezone follows Home Assistant: ${TZ}"
+  else
+    export TZ="UTC"
+    warn "Could not read the Home Assistant timezone — using UTC."
+    warn "Set the hidden 'timezone' option (Show unused optional configuration options) to override."
+  fi
+fi
 log "Pinned FHEM version (image seed for new installs): ${FHEM_SEEDED_VERSION:-unknown}"
 
 mkdir -p "${FHEM_DIR}"
@@ -245,24 +272,16 @@ define fhemwebAuth allowed
 attr fhemwebAuth validFor ${WEB_VALID_FOR}
 set fhemwebAuth basicAuth ${WEB_AUTH_USER} ${WEB_AUTH_PASS}
 EOF
+    # Config editing follows the login: with auth in place the editor adds no
+    # privilege (a logged-in user could run any FHEM command anyway), and it is
+    # never exposed without a login.
+    for _dev in $(echo "${WEB_VALID_FOR}" | tr ',' ' '); do
+      echo "attr ${_dev} editConfig 1"
+    done
   else
     echo "# No web auth configured. Set web_auth_user/web_auth_password in the"
-    echo "# app options to require a login for FHEMWEB."
-  fi
-  if [ "$(opt web_edit_config false)" = "true" ]; then
-    if [ -n "${WEB_AUTH_USER}" ] && [ -n "${WEB_AUTH_PASS}" ]; then
-      # Guard: never expose the config editor without a login. With auth in
-      # place the editor adds no privilege — a logged-in user could run any
-      # FHEM command anyway (including enabling editConfig itself).
-      for _dev in $(echo "${WEB_VALID_FOR}" | tr ',' ' '); do
-        echo "attr ${_dev} editConfig 1"
-      done
-    else
-      warn "web_edit_config ignored: set web_auth_user/web_auth_password first"
-      warn "(editing config on an unauthenticated FHEMWEB would be open to the LAN)."
-      echo "#attr WEB editConfig 1   (enable web_auth_user/web_auth_password first)"
-    fi
-  else
+    echo "# app options: this requires a login for FHEMWEB and enables its"
+    echo "# configuration editor (Edit files)."
     echo "#attr WEB editConfig 1"
   fi
 } > "${FHEM_DIR}/web-auth.cfg"

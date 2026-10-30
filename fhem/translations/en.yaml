@@ -1,0 +1,40 @@
+configuration:
+  device:
+    name: "Serial device"
+    description: "Serial device of the NanoCUL. Usually not needed - the app logs the detected /dev/serial/by-id/... paths at startup. Set this only to pin a specific device."
+  mqtt_automatic:
+    name: "MQTT: automatic"
+    description: "Discover the MQTT broker via the Supervisor mqtt service (recommended with the Mosquitto app)."
+  mqtt_host:
+    name: "MQTT: host"
+    description: "Manual broker host, used when automatic discovery is off or fails. Other apps reach Mosquitto as core-mosquitto."
+  mqtt_port:
+    name: "MQTT: port"
+    description: "Manual broker port."
+  mqtt_user:
+    name: "MQTT: user"
+    description: "Manual broker user name."
+  mqtt_password:
+    name: "MQTT: password"
+    description: "Manual broker password (no spaces)."
+  fhemmax2hass:
+    name: "MQTT discovery helper"
+    description: "Install the fhemMAX2HASS helper (99_myUtils.pm) for Home Assistant MQTT discovery of MAX! devices."
+  fhem_url:
+    name: "FHEM web URL"
+    description: "Base URL of FHEMWEB used in Home Assistant to FHEM deep links. homeassistant.local is the standard Home Assistant OS name (mDNS); change it if your HA is reachable under a different name."
+  web_auth_user:
+    name: "FHEMWEB login: user"
+    description: "Requires a login for the FHEM web interface and enables its configuration editor (Edit files). Strongly recommended - without a login, anyone on your network can control your heating."
+  web_auth_password:
+    name: "FHEMWEB login: password"
+    description: "Password for the FHEM web interface (no spaces)."
+  timezone:
+    name: "Timezone"
+    description: "Optional override. When empty, the app follows the timezone of Home Assistant. FHEM's clock is what the MAX! thermostats sync their weekly program to."
+  fhem_cfg:
+    name: "FHEM configuration (advanced)"
+    description: "Optional: the complete fhem.cfg text as the source of truth (edit via Edit in YAML). When set, the app writes fhem.cfg from it on every start. When empty (recommended), the fhem.cfg file in the app config folder governs and is edited in FHEMWEB (Edit files)."
+network:
+  8083/tcp: "FHEM web interface (FHEMWEB)"
+  7072/tcp: "FHEM telnet console (optional)"
