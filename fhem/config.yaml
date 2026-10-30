@@ -1,5 +1,5 @@
 name: FHEM
-version: "0.1.4-fhem6.5"
+version: "0.2.0-fhem6.5"
 slug: fhem
 description: FHEM home automation — MAX! via NanoCUL, bridged to HA over MQTT
 url: https://github.com/tmtom/hassio-fhem/tree/main/fhem
@@ -10,7 +10,7 @@ startup: services
 boot: auto
 init: false
 timeout: 60
-# Pre-built image is enabled in Phase 4; during development the app is built on device.
+# Pre-built image is enabled in Phase 5; during development the app is built on device.
 # image: ghcr.io/tmtom/hassio-fhem
 ports:
   8083/tcp: 8083
@@ -37,6 +37,10 @@ options:
   fhemmax2hass: true
   fhem_url: http://homeassistant.local:8083/fhem
   timezone: Europe/Prague
+  web_auth_user: ""
+  web_auth_password: ""
+  web_edit_config: false
+  fhem_cfg: ""
 schema:
   device: device(subsystem=tty)?
   mqtt_automatic: bool
@@ -47,6 +51,10 @@ schema:
   fhemmax2hass: bool
   fhem_url: str
   timezone: str
+  web_auth_user: str
+  web_auth_password: password
+  web_edit_config: bool
+  fhem_cfg: str?
 backup: cold
 backup_exclude:
   - "log/*.log"

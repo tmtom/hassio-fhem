@@ -37,38 +37,57 @@ Home Assistant over **MQTT** (including Home Assistant MQTT discovery).
 | `fhemmax2hass` | `true` | Install the vendored [fhemMAX2HASS](https://github.com/danielrheinbay/fhemMAX2HASS) helper (`99_myUtils.pm`) for Home Assistant MQTT discovery of MAX! devices. |
 | `fhem_url` | `http://homeassistant.local:8083/fhem` | Base URL of FHEMWEB used in Home Assistant → FHEM deep links (fhemMAX2HASS). |
 | `timezone` | `Europe/Prague` | Container timezone (`TZ`). |
+| `web_auth_user` | *(empty)* | Login for FHEMWEB (with `web_auth_password`): the app configures FHEM's `allowed` device in `web-auth.cfg` (salted SHA256). Whitespace is not allowed in the password. |
+| `web_auth_password` | *(empty)* | Password for FHEMWEB. |
+| `web_edit_config` | `false` | Allow editing `fhem.cfg` from FHEMWEB ("Edit files"). Only enable together with web auth — FHEMWEB has no login by default. |
+| `fhem_cfg` | *(empty)* | The complete FHEM configuration text (see *Editing the configuration*). When set, it is the source of truth and `fhem.cfg` is written from it on every start. When empty, `fhem.cfg` in the config folder governs. |
 
 ## Where the configuration lives
 
 The app's config folder is mounted at `/opt/fhem` inside the container. On the
 host you find it at **`/addon_configs/<repo>_fhem`** (shown as
 `app_configs/<repo>_fhem` in the Samba/SSH/VS Code apps). Everything FHEM keeps
-lives there: `fhem.cfg`, `FHEM/`, `log/`, `mqtt-connection.cfg`, … — all of it
-is persistent and part of Home Assistant backups.
+lives there: `fhem.cfg`, `FHEM/`, `log/`, `mqtt-connection.cfg`, `web-auth.cfg`,
+… — all of it is persistent and part of Home Assistant backups.
 
-`/run.sh` generates **`mqtt-connection.cfg`** in that folder on every start,
-containing a ready-made `define mqtt MQTT2_CLIENT ...` line with the discovered
-broker credentials. Include it from `fhem.cfg` or copy the lines into your own
-definition (credentials must not contain whitespace).
+`/run.sh` generates two snippets in that folder on every start:
+**`mqtt-connection.cfg`** with a ready-made `define mqtt MQTT2_CLIENT ...` line
+(broker credentials from the Supervisor service; credentials must not contain
+whitespace) and **`web-auth.cfg`** with the FHEMWEB login/edit settings from
+the app options. Include them from `fhem.cfg`, or copy the lines into your own
+definitions.
 
 ## Editing the configuration
 
-No root or host SSH access is needed — pick one:
+No extra tools are needed — the app's own **Configuration** tab is the editor:
 
-- **VS Code or Samba add-on** (recommended): open the `..._fhem` folder under
-  `addon_configs` (shown as `app_configs` on newer systems) and edit `fhem.cfg`
-  in place. Note: the built-in *File editor* add-on only shows Home Assistant's
-  own `/config`; use VS Code or Samba for app configuration folders.
-- **From FHEMWEB**: enable in-place editing on the WEB definition with
-  `attr WEB editConfig 1` — and set `basicAuth` first; FHEMWEB has no login by
-  default.
+1. Open the app in Home Assistant → **Configuration** tab.
+2. Switch to **Edit in YAML** (the visual form fields are single-line; the YAML
+   editor is where the multi-line config text lives — a YAML block scalar:
+   `fhem_cfg: |` followed by the indented config lines).
+3. Put your complete FHEM configuration into the `fhem_cfg` field.
+4. **Save** — Home Assistant prompts to restart the app; confirm. Done.
+
+With `fhem_cfg` set, the option is the source of truth: the app writes
+`fhem.cfg` from it on every start (the file becomes derived state and can never
+be "lost" — and your config is covered twice by Home Assistant backups: in the
+app's options and in the config folder).
+
+Leave `fhem_cfg` empty (the default) to have `fhem.cfg` in the config folder
+govern directly — the classic mode for power users: edit the file with the
+**VS Code or Samba app** on the `..._fhem` folder under `addon_configs`, or
+enable FHEMWEB's own editor (`web_edit_config: true` — and set
+`web_auth_user`/`web_auth_password`; FHEMWEB has no login by default). Note:
+the built-in *File editor* app only shows Home Assistant's own `/config`, not
+app configuration folders.
 
 FHEM does not watch `fhem.cfg`: changes are picked up when FHEM reads the
-config — **restart the app**, or run `rereadcfg` in FHEMWEB.
+config — **restart the app** (the prompt after saving options does this), or
+run `rereadcfg` in FHEMWEB.
 
 As a safety net, the FHEM image keeps a `fhem.cfg.bak` copy of the config on
-every start; if `fhem.cfg` ever goes missing, the app restores that backup
-instead of installing the seed.
+every start; if `fhem.cfg` ever goes missing (and `fhem_cfg` is not set), the
+app restores that backup instead of installing the seed.
 
 ## Backups
 
@@ -156,12 +175,15 @@ define hass.MAXdiscoveryBoot notify global:INITIALIZED {foreach (devspec2array("
 The app ships a clean stock config; you port your own `fhem.cfg` into the app
 config folder:
 
-1. Copy the old `fhem.cfg` (and any `99_myUtils.pm`, plus `./log` state you
-   want to keep) into the app config folder (`/opt/fhem`). Relative paths
+1. Get your old `fhem.cfg` into the app. Easiest: paste it into the `fhem_cfg`
+   option (app → Configuration → **Edit in YAML**) — the app keeps `fhem.cfg`
+   in sync with it. Alternatively copy the file (and any `99_myUtils.pm`, plus
+   `./log` state you want to keep) into the app config folder (`/opt/fhem`) and
+   leave `fhem_cfg` empty. Relative paths
    (`modpath .`, `./log/...`, `statefile ./log/fhem.save`) keep working
    unchanged — `/opt/fhem` is both working directory and persistent volume.
-   Tip: copy the files in *before* the first start — the seed `fhem.cfg` is
-   only installed when none exists.
+   Tip for the copy path: do it *before* the first start — the seed `fhem.cfg`
+   is only installed when none exists.
 2. Replace the MQTT endpoint (`define mqtt MQTT2_CLIENT localhost:1883`) with
    `include mqtt-connection.cfg`, or edit in the broker address manually (other
    apps reach Mosquitto as `core-mosquitto:1883`).
@@ -202,9 +224,11 @@ Home Assistant app updates and FHEM updates are **separate things**:
 ## Security notes
 
 - **FHEMWEB has no authentication by default.** Port 8083 is mapped to your
-  LAN and anyone there can control your heating. Enable `basicAuth` on the
-  FHEMWEB definition (e.g. `attr WEB basicAuth user:password`) or unmap the
-  port in the app configuration and reach FHEM through other means.
+  LAN and anyone there can control your heating. Set `web_auth_user` and
+  `web_auth_password` in the app options (generated into `web-auth.cfg`; needs
+  `include web-auth.cfg` in `fhem.cfg` — the seed has it and `fhem_cfg`-based
+  configs get it automatically), or unmap the port in the app configuration
+  and reach FHEM through other means.
 - The telnet console (port 7072) is disabled by default; enable the port in the
   app configuration if you need it.
 - AppArmor is enabled with the profile shipped in this repository

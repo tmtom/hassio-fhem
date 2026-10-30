@@ -4,6 +4,22 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.0 (2026-10-30)
+
+- **Configuration from Home Assistant — no extra tools:** new `fhem_cfg` option
+  holds the complete FHEM configuration text (edited in the app's
+  Configuration tab via **Edit in YAML**). When set, the app materializes
+  `fhem.cfg` from it on every start (write-on-change): the file becomes derived
+  state that cannot be lost, and the config is covered twice by Home Assistant
+  backups (app options + config folder). When empty (default), `fhem.cfg` in
+  the config folder governs exactly as in 0.1.x (back-compat).
+- New options `web_auth_user`/`web_auth_password` (FHEMWEB login — FHEM 6.x
+  `allowed` device with salted SHA256, generated into `web-auth.cfg`) and
+  `web_edit_config` (enable FHEMWEB's own file editor). The seed config now
+  includes `web-auth.cfg`.
+- Docs: "Editing the configuration" leads with the Configure-tab flow;
+  VS Code/Samba remain documented as power-user alternatives.
+
 ## 0.1.4 (2026-10-30)
 
 - **Fix MQTT authentication:** `MQTT2_CLIENT` only takes `host:port` as the
