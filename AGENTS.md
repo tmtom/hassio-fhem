@@ -115,13 +115,13 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
   acceptance (NanoCUL, 8 devices, MQTT discovery, set-temperature round-trip,
   backup round-trip); config UX (Configure-tab options, FHEMWEB editor with
   login, timezone follows HA, translations, docs split).
-- **Next — Phase 5 (CI/CD):** `.github/workflows/` adapted from
-  `home-assistant/apps-example` (`build-app.yaml` + caller; pinned
-  `home-assistant/builder` actions) building `fhem/` on push to `main` →
-  multi-arch `ghcr.io/tmtom/hassio-fhem` (cosign-signed); make the GHCR
-  package **public** (first push is private!); enable `image:` in
-  `config.yaml`; `bump-fhem.yaml` (weekly FHEM release check → PR doing the
-  release procedure above); clean-install test from the GitHub repo.
+- **Phase 5 (CI/CD) — mostly done:** `.github/workflows/` from
+  `home-assistant/apps-example` (`builder` + `build-app` with pinned
+  `home-assistant/builder` actions → multi-arch `ghcr.io/tmtom/hassio-fhem`,
+  `lint`); `bump-fhem.yaml` automates the release procedure (weekly probe for
+  new FHEM/base releases → bump PR; tag created on merge). `image:` is enabled
+  in `config.yaml`. **Remaining:** make the GHCR package public after the first
+  build (it starts private!), verify a clean install pulls the pre-built image.
 - **Phase 6 (optional):** FHEMWEB ingress experiment (proxying is tricky —
   absolute URLs), telnet option docs, forum post, Renovate/Dependabot.
 

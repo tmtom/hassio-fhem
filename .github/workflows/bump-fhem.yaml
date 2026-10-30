@@ -1,0 +1,134 @@
+name: Bump FHEM
+
+# Two jobs, one workflow:
+# - check (schedule / manual): probe for a newer FHEM release or base image tag
+#   and open a bump pull request that contains the full release procedure
+#   (version, CHANGELOG, doc links).
+# - tag-release (push to main touching fhem/Dockerfile): create the vX.Y.Z tag
+#   for a merged bump — the versioned doc links depend on it.
+
+on:
+  schedule:
+    - cron: "30 4 * * 1"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "fhem/Dockerfile"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  tag-release:
+    name: Tag merged bump
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Create release tag if missing
+        run: |
+          version="$(sed -n 's/^version: "\(.*\)"/\1/p' fhem/config.yaml | head -1)"
+          if [ -z "$version" ]; then
+            echo "No version found in fhem/config.yaml" >&2
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v${version}"; then
+            echo "Tag v${version} already exists"
+          else
+            git tag "v${version}"
+            git push origin "v${version}"
+            echo "Created tag v${version}"
+          fi
+
+  check:
+    name: Check for new FHEM release
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Read pinned versions
+        id: pinned
+        run: |
+          echo "fhem=$(sed -n 's/^ARG FHEM_VERSION=//p' fhem/Dockerfile)" >> "$GITHUB_OUTPUT"
+          echo "base=$(sed -n 's#^ARG BUILD_FROM=ghcr.io/fhem/fhem-minimal-docker:##p' fhem/Dockerfile)" >> "$GITHUB_OUTPUT"
+          echo "version=$(sed -n 's/^version: "\(.*\)"/\1/p' fhem/config.yaml | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Probe for a newer FHEM release
+        id: fhem
+        env:
+          PINNED: ${{ steps.pinned.outputs.fhem }}
+        run: |
+          major="${PINNED%%.*}"
+          minor="${PINNED#*.}"
+          for cand in "${major}.$((minor+1))" "$((major+1)).0"; do
+            if curl -fsS -o /dev/null "https://fhem.de/fhem-${cand}.tar.gz"; then
+              echo "new=$cand" >> "$GITHUB_OUTPUT"
+              echo "Newer FHEM release found: ${cand} (pinned: ${PINNED})"
+              exit 0
+            fi
+          done
+          echo "new=" >> "$GITHUB_OUTPUT"
+          echo "No newer FHEM release (pinned: ${PINNED})"
+
+      - name: Probe for a newer base image tag
+        id: base
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          newest="$(gh api repos/fhem/fhem-docker/tags --paginate --jq '.[].name' \
+            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-bookworm$' | sort -V | tail -1)"
+          echo "new=${newest}" >> "$GITHUB_OUTPUT"
+          echo "Newest base tag: ${newest}"
+
+      - name: Open bump pull request
+        if: steps.fhem.outputs.new != '' || (steps.base.outputs.new != '' && steps.base.outputs.new != steps.pinned.outputs.base)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OLD_FHEM: ${{ steps.pinned.outputs.fhem }}
+          NEW_FHEM: ${{ steps.fhem.outputs.new }}
+          OLD_BASE: ${{ steps.pinned.outputs.base }}
+          NEW_BASE: ${{ steps.base.outputs.new }}
+          OLD_VERSION: ${{ steps.pinned.outputs.version }}
+        run: |
+          set -eu
+          new_fhem="${NEW_FHEM:-$OLD_FHEM}"
+          new_base="${NEW_BASE:-$OLD_BASE}"
+
+          # Version scheme 0.x.y-fhem<ver>: minor bump when FHEM changes, patch otherwise.
+          x="${OLD_VERSION#0.}"
+          x="${x%%.*}"
+          y="${OLD_VERSION#0.*.}"
+          y="${y%%-*}"
+          if [ "$new_fhem" != "$OLD_FHEM" ]; then
+            new_version="0.$((x+1)).0-fhem${new_fhem}"
+          else
+            new_version="0.${x}.$((y+1))-fhem${new_fhem}"
+          fi
+
+          sed -i "s/^ARG FHEM_VERSION=.*/ARG FHEM_VERSION=${new_fhem}/" fhem/Dockerfile
+          sed -i "s#^ARG BUILD_FROM=.*#ARG BUILD_FROM=ghcr.io/fhem/fhem-minimal-docker:${new_base}#" fhem/Dockerfile
+          sed -i "s/^version: \".*\"/version: \"${new_version}\"/" fhem/config.yaml
+          sed -i "s|blob/v${OLD_VERSION}/|blob/v${new_version}/|g" fhem/README.md fhem/DOCS.md fhem/USER_GUIDE.md
+
+          entry="## ${new_version} ($(date +%F))\n\n- Automated bump: FHEM ${OLD_FHEM} → ${new_fhem}, base image ${OLD_BASE} → ${new_base}."
+          awk -v entry="$entry" 'BEGIN { done=0 } /^## / && !done { printf "%s\n\n", entry; done=1 } { print }' \
+            CHANGELOG.md > CHANGELOG.md.new
+          mv CHANGELOG.md.new CHANGELOG.md
+
+          branch="bump/automated-$(date +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add -A
+          git commit -m "chore: bump to ${new_version}"
+          git push -u origin "$branch"
+          body="Automated version bump.\n\n- FHEM: ${OLD_FHEM} -> ${new_fhem}\n- Base image: ${OLD_BASE} -> ${new_base}\n\nMerging this PR is a full release: the CI build publishes the image and the tag job creates v${new_version} (the doc links point at it)."
+          gh pr create --title "chore: bump to ${new_version}" --body "$(printf '%b' "$body")" --base main --head "$branch"
