@@ -1,5 +1,5 @@
 name: FHEM
-version: "0.2.6-fhem6.5"
+version: "0.2.7-fhem6.5"
 slug: fhem
 description: FHEM home automation — MAX! via NanoCUL, bridged to HA over MQTT
 url: https://github.com/tmtom/hassio-fhem/tree/main/fhem

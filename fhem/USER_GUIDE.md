@@ -2,7 +2,7 @@
 
 The complete documentation for the **hassio-fhem** app. The in-app
 **Documentation** tab shows the short setup guide
-([DOCS.md](https://github.com/tmtom/hassio-fhem/blob/v0.2.6-fhem6.5/fhem/DOCS.md));
+([DOCS.md](https://github.com/tmtom/hassio-fhem/blob/v0.2.7-fhem6.5/fhem/DOCS.md));
 everything else is here.
 
 - [Options reference](#options-reference)
@@ -159,8 +159,14 @@ thermostat) — not at FHEM startup. To publish discovery for all MAX! devices
 right after startup as well, add:
 
 ```perl
-define hass.MAXdiscoveryBoot notify global:INITIALIZED {foreach (devspec2array("TYPE=MAX")) { MAX2HASSdiscovery($_); } return "";}
+define hass.MAXdiscoveryBoot notify global:INITIALIZED {MAX2HASSdiscovery($_) for devspec2array("TYPE=MAX")}
 ```
+
+Note: keep Perl one-liners in `notify` **free of semicolons** (as above) —
+`notify` feeds the command through FHEM's command chain, which splits it at
+every `;` (`Unknown command }, try help` in the log is the symptom). One-line
+statement modifiers like `... for LIST` work; multi-statement blocks need
+`;;` escaping.
 
 ## Porting an existing FHEM config
 

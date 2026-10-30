@@ -4,6 +4,15 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.7 (2026-10-30)
+
+- **Fix the boot-discovery snippet** in `USER_GUIDE.md`: the documented
+  `hass.MAXdiscoveryBoot` `notify` used a multi-statement Perl block, which
+  FHEM's command chain splits at every `;` (`Unknown command }, try help` in
+  the log — found in a live install). The snippet is now a semicolon-free
+  one-liner (`{... for LIST}`), verified against a real FHEM start, with a
+  note on the `notify`/`;` pitfall.
+
 ## 0.2.6 (2026-10-30)
 
 - **Manifest cleanups per the official app linter:** removed `boot` and
