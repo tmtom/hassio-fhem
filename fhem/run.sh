@@ -86,23 +86,31 @@ fi
 # 2b. Configuration source of truth: the fhem_cfg option (Configure tab).
 #     When set, fhem.cfg is derived state and is materialized from the option
 #     on every start (write-on-change). When empty, the file itself governs and
-#     is never overwritten — only restored from fhem.cfg.bak or seeded when
-#     missing (the behavior of app versions <= 0.1.x).
+#     content is never overwritten (the behavior of app versions <= 0.1.x).
+#     Either way the generated web-auth.cfg include is appended when missing —
+#     otherwise web auth / editConfig silently do nothing.
 #-----------------------------------------------------------------------------
 FHEM_CFG_OPT="$(opt fhem_cfg '')"
+CFG_CANDIDATE=/tmp/fhem.cfg.candidate
 if [ -n "${FHEM_CFG_OPT}" ]; then
-  printf '%s\n' "${FHEM_CFG_OPT}" | tr -d '\r' > /tmp/fhem.cfg.fromopt
-  # Keep the generated web-auth include working for configs that do not list it
-  # themselves. Appended to the derived file only — the option value stays
-  # exactly as the user wrote it.
-  if ! grep -qE '^[[:space:]]*include[[:space:]]+web-auth\.cfg[[:space:]]*$' /tmp/fhem.cfg.fromopt; then
-    printf '\ninclude web-auth.cfg\n' >> /tmp/fhem.cfg.fromopt
-  fi
-  if ! cmp -s /tmp/fhem.cfg.fromopt "${FHEM_DIR}/fhem.cfg" 2>/dev/null; then
-    cp /tmp/fhem.cfg.fromopt "${FHEM_DIR}/fhem.cfg"
+  printf '%s\n' "${FHEM_CFG_OPT}" | tr -d '\r' > "${CFG_CANDIDATE}"
+  CFG_MODE="option"
+else
+  cp "${FHEM_DIR}/fhem.cfg" "${CFG_CANDIDATE}"
+  CFG_MODE="file"
+fi
+if ! grep -qE '^[[:space:]]*include[[:space:]]+web-auth\.cfg[[:space:]]*$' "${CFG_CANDIDATE}"; then
+  printf '\ninclude web-auth.cfg\n' >> "${CFG_CANDIDATE}"
+  CFG_APPENDED=1
+fi
+if cmp -s "${CFG_CANDIDATE}" "${FHEM_DIR}/fhem.cfg"; then
+  [ "${CFG_MODE}" = "option" ] && log "fhem.cfg already matches the fhem_cfg option"
+else
+  cp "${CFG_CANDIDATE}" "${FHEM_DIR}/fhem.cfg"
+  if [ "${CFG_MODE}" = "option" ]; then
     log "fhem.cfg materialized from the fhem_cfg option ($(wc -c < "${FHEM_DIR}/fhem.cfg" | tr -d ' ') bytes, md5 $(md5sum "${FHEM_DIR}/fhem.cfg" | cut -c1-8))"
   else
-    log "fhem.cfg already matches the fhem_cfg option"
+    log "appended 'include web-auth.cfg' to fhem.cfg (loads the generated web-auth.cfg)"
   fi
 fi
 
@@ -242,9 +250,18 @@ EOF
     echo "# app options to require a login for FHEMWEB."
   fi
   if [ "$(opt web_edit_config false)" = "true" ]; then
-    for _dev in $(echo "${WEB_VALID_FOR}" | tr ',' ' '); do
-      echo "attr ${_dev} editConfig 1"
-    done
+    if [ -n "${WEB_AUTH_USER}" ] && [ -n "${WEB_AUTH_PASS}" ]; then
+      # Guard: never expose the config editor without a login. With auth in
+      # place the editor adds no privilege — a logged-in user could run any
+      # FHEM command anyway (including enabling editConfig itself).
+      for _dev in $(echo "${WEB_VALID_FOR}" | tr ',' ' '); do
+        echo "attr ${_dev} editConfig 1"
+      done
+    else
+      warn "web_edit_config ignored: set web_auth_user/web_auth_password first"
+      warn "(editing config on an unauthenticated FHEMWEB would be open to the LAN)."
+      echo "#attr WEB editConfig 1   (enable web_auth_user/web_auth_password first)"
+    fi
   else
     echo "#attr WEB editConfig 1"
   fi

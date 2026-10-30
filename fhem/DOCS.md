@@ -39,7 +39,7 @@ Home Assistant over **MQTT** (including Home Assistant MQTT discovery).
 | `timezone` | `Europe/Prague` | Container timezone (`TZ`). |
 | `web_auth_user` | *(empty)* | Login for FHEMWEB (with `web_auth_password`): the app configures FHEM's `allowed` device in `web-auth.cfg` (salted SHA256). Whitespace is not allowed in the password. |
 | `web_auth_password` | *(empty)* | Password for FHEMWEB. |
-| `web_edit_config` | `false` | Allow editing `fhem.cfg` from FHEMWEB ("Edit files"). Only enable together with web auth — FHEMWEB has no login by default. |
+| `web_edit_config` | `false` | Allow editing `fhem.cfg` from FHEMWEB ("Edit files" page). Requires `web_auth_user`/`web_auth_password` — ignored otherwise (the editor is never exposed without a login). Saving the config there applies it immediately (`rereadcfg` runs automatically) — no restart needed. |
 | `fhem_cfg` | *(empty)* | The complete FHEM configuration text (see *Editing the configuration*). When set, it is the source of truth and `fhem.cfg` is written from it on every start. When empty, `fhem.cfg` in the config folder governs. |
 
 ## Where the configuration lives
@@ -74,16 +74,23 @@ be "lost" — and your config is covered twice by Home Assistant backups: in the
 app's options and in the config folder).
 
 Leave `fhem_cfg` empty (the default) to have `fhem.cfg` in the config folder
-govern directly — the classic mode for power users: edit the file with the
-**VS Code or Samba app** on the `..._fhem` folder under `addon_configs`, or
-enable FHEMWEB's own editor (`web_edit_config: true` — and set
-`web_auth_user`/`web_auth_password`; FHEMWEB has no login by default). Note:
-the built-in *File editor* app only shows Home Assistant's own `/config`, not
-app configuration folders.
+govern directly. Two comfortable ways to edit it:
+
+- **FHEMWEB's built-in editor** (recommended — no extra tools): set
+  `web_auth_user`/`web_auth_password` and `web_edit_config: true`, restart,
+  then open the app's Web UI button → *Edit files* → `fhem.cfg` → edit →
+  **Save**. Saving the config file re-reads it immediately (FHEMWEB runs
+  `rereadcfg` automatically) — no restart needed. The editor is only enabled
+  together with web auth; without a login it stays read-only.
+- **VS Code or Samba app** on the `..._fhem` folder under `addon_configs`
+  (power users; also for editing included files and custom Perl modules).
+  Note: the built-in *File editor* app only shows Home Assistant's own
+  `/config`, not app configuration folders.
 
 FHEM does not watch `fhem.cfg`: changes are picked up when FHEM reads the
-config — **restart the app** (the prompt after saving options does this), or
-run `rereadcfg` in FHEMWEB.
+config — the FHEMWEB editor does that on Save; for edits made with other
+tools, **restart the app** (the prompt after saving options does this) or run
+`rereadcfg` in FHEMWEB.
 
 As a safety net, the FHEM image keeps a `fhem.cfg.bak` copy of the config on
 every start; if `fhem.cfg` ever goes missing (and `fhem_cfg` is not set), the
@@ -225,10 +232,9 @@ Home Assistant app updates and FHEM updates are **separate things**:
 
 - **FHEMWEB has no authentication by default.** Port 8083 is mapped to your
   LAN and anyone there can control your heating. Set `web_auth_user` and
-  `web_auth_password` in the app options (generated into `web-auth.cfg`; needs
-  `include web-auth.cfg` in `fhem.cfg` — the seed has it and `fhem_cfg`-based
-  configs get it automatically), or unmap the port in the app configuration
-  and reach FHEM through other means.
+  `web_auth_password` in the app options (generated into `web-auth.cfg`, which
+  the app appends to `fhem.cfg` automatically), or unmap the port in the app
+  configuration and reach FHEM through other means.
 - The telnet console (port 7072) is disabled by default; enable the port in the
   app configuration if you need it.
 - AppArmor is enabled with the profile shipped in this repository

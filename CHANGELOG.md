@@ -4,6 +4,19 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.1 (2026-10-30)
+
+- **Fix `web_edit_config` for file-based configs:** `web-auth.cfg` was only
+  loaded when `fhem.cfg` included it manually — `run.sh` now appends
+  `include web-auth.cfg` to `fhem.cfg` automatically when missing (idempotent,
+  logged; both file-based and `fhem_cfg`-option configs).
+- **Security guard:** `web_edit_config` is ignored unless web auth
+  (`web_auth_user`/`web_auth_password`) is configured — the config editor is
+  never exposed on an unauthenticated FHEMWEB.
+- Docs: FHEMWEB's editor is now the recommended config path — its Save
+  re-reads the config immediately (`rereadcfg` runs automatically), no restart
+  needed.
+
 ## 0.2.0 (2026-10-30)
 
 - **Configuration from Home Assistant — no extra tools:** new `fhem_cfg` option
