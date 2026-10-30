@@ -4,6 +4,16 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.10 (2026-10-30)
+
+- **Fix the Info-tab "Visit FHEM page" link:** the panel generates that line
+  from the manifest `url` field, which pointed at this repository — now
+  `https://fhem.de/` (the repository link stays in the README on the same
+  page).
+- **Faster "running" detection:** health check interval 5s → 3s and
+  `start-period` 60s → 30s (FHEM boots in ~15s), so the UI state chip flips
+  quicker after start.
+
 ## 0.2.9 (2026-10-30)
 
 - **Removed the `fhem_cfg` option** (UX review: it added noise for a feature

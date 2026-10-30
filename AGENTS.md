@@ -148,8 +148,9 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
   `home-assistant/builder` actions → multi-arch `ghcr.io/tmtom/hassio-fhem`,
   publicly pullable, `lint` green); `bump-fhem.yaml` automates the release
   procedure (weekly probe for new FHEM/base releases → bump PR; tag created on
-  merge). `image:` enabled — installs pull the pre-built image. *(Exit test:
-  user update to 0.2.6 pulls without on-device build.)*
+  merge). `image:` enabled — installs pull the pre-built image. **Exit test
+  passed (2026-10-30):** clean install from the GitHub repo pulled the image,
+  seeded on an empty volume, and the backup restore returned config + state.
 - **Phase 6 (optional):** FHEMWEB ingress experiment (proxying is tricky —
   absolute URLs), telnet option docs, forum post, Renovate/Dependabot.
 

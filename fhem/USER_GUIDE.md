@@ -2,7 +2,7 @@
 
 The complete documentation for the **hassio-fhem** app. The in-app
 **Documentation** tab shows the short setup guide
-([DOCS.md](https://github.com/tmtom/hassio-fhem/blob/v0.2.9-fhem6.5/fhem/DOCS.md));
+([DOCS.md](https://github.com/tmtom/hassio-fhem/blob/v0.2.10-fhem6.5/fhem/DOCS.md));
 everything else is here.
 
 - [Options reference](#options-reference)

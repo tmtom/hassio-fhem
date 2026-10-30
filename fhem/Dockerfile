@@ -32,7 +32,8 @@ ENV FHEM_SEEDED_VERSION=${FHEM_VERSION}
 # interval makes the app flip to "started" soon after FHEM is up.
 # Healthy when FHEMWEB answers — with web auth configured, a 401 proves both
 # FHEMWEB and the login are up (curl -f would treat it as a failure).
-HEALTHCHECK --interval=5s --timeout=10s --start-period=60s --retries=3 \
+# Short interval so the "running" state in the UI flips quickly.
+HEALTHCHECK --interval=3s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -sS -o /dev/null --max-time 8 -w '%{http_code}' http://localhost:8083/fhem | grep -qE '^(200|401)$' || exit 1
 
 # HA OS dialout group GID fix (from ZwergNase/KastB addon-fhem): the device nodes
