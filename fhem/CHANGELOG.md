@@ -4,6 +4,12 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.8 (2026-10-30)
+
+- **Fix "No changelog found for app …" in the update dialog:** the Supervisor
+  reads `CHANGELOG.md` from the *app folder* — it moved from the repository
+  root to `fhem/CHANGELOG.md`, where the changelog dialog picks it up.
+
 ## 0.2.7 (2026-10-30)
 
 - **Fix the boot-discovery snippet** in `USER_GUIDE.md`: the documented

@@ -120,8 +120,8 @@ jobs:
 
           entry="## ${new_version} ($(date +%F))\n\n- Automated bump: FHEM ${OLD_FHEM} → ${new_fhem}, base image ${OLD_BASE} → ${new_base}."
           awk -v entry="$entry" 'BEGIN { done=0 } /^## / && !done { printf "%s\n\n", entry; done=1 } { print }' \
-            CHANGELOG.md > CHANGELOG.md.new
-          mv CHANGELOG.md.new CHANGELOG.md
+            fhem/CHANGELOG.md > fhem/CHANGELOG.md.new
+          mv fhem/CHANGELOG.md.new fhem/CHANGELOG.md
 
           branch="bump/automated-$(date +%Y%m%d)"
           git config user.name "github-actions[bot]"

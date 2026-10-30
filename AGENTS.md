@@ -10,11 +10,13 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
 - `fhem/` — the app: `config.yaml` (manifest), `Dockerfile`, `run.sh`
   (entrypoint wrapper), `README.md` (rendered on the app **Info** tab),
   `DOCS.md` (rendered on the **Documentation** tab — keep it short),
-  `USER_GUIDE.md` (full reference, linked from GitHub), `translations/en.yaml`
+  `CHANGELOG.md` (shown in the update dialog — must be in the app folder,
+  the Supervisor does not look at the repo root), `USER_GUIDE.md` (full
+  reference, linked from GitHub), `translations/en.yaml`
   (Configuration-tab labels/hints), `apparmor.txt`, `rootfs/` (seed config
   template + vendored `99_myUtils.pm`).
-- Root: `CHANGELOG.md` (newest on top; users read it to decide on updates),
-  `LICENSE` (MIT for our files), `repository.yaml`, `.github/workflows/` (CI).
+- Root: `LICENSE` (MIT for our files), `AGENTS.md`, `repository.yaml`,
+  `.github/workflows/` (CI).
 - Public repo `tmtom/hassio-fhem`. Licensing: our files MIT; FHEM is GPL and
   redistributed via the official `fhem/fhem-minimal-docker` base image and the
   pinned fhem.de tarball; `99_myUtils.pm` is fhemMAX2HASS (AGPL-3.0, vendored).
@@ -107,7 +109,7 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
 1. Bump `version` in `fhem/config.yaml` (`0.x.y-fhem6.5`). **HA only offers an
    update when the version changes** — a docs-only push without a bump is
    invisible to installed users (this has bitten us once).
-2. Add a `CHANGELOG.md` entry on top.
+2. Add a `fhem/CHANGELOG.md` entry on top.
 3. Rewrite the doc links in `fhem/{README,DOCS,USER_GUIDE}.md`
    (`blob/<old-tag>/` → `blob/<new-tag>/`) so links match the released docs.
 4. Commit, tag `v<version>`, `git push origin main --tags`. The tag must exist
