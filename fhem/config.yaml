@@ -1,5 +1,5 @@
 name: FHEM
-version: "0.2.8-fhem6.5"
+version: "0.2.9-fhem6.5"
 slug: fhem
 description: FHEM home automation — MAX! via NanoCUL, bridged to HA over MQTT
 url: https://github.com/tmtom/hassio-fhem/tree/main/fhem
@@ -51,7 +51,6 @@ schema:
   web_auth_user: str
   web_auth_password: password
   timezone: str?
-  fhem_cfg: str?
 backup: cold
 backup_exclude:
   - "log/*.log"

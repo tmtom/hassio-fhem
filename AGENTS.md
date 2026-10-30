@@ -39,9 +39,8 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
   timezone (hidden `timezone` option → HA Core API `time_zone`, which is why
   `homeassistant_api: true` → UTC fallback); first-start seeding of the frozen
   tree + seed config (with `fhem.cfg.bak` restore safety net and md5
-  fingerprint logging — the config-loss forensics); config materialization from
-  the advanced `fhem_cfg` option (empty = the file governs, back-compat with
-  0.1.x); auto-append `include web-auth.cfg` to `fhem.cfg` when missing;
+  fingerprint logging — the config-loss forensics); auto-append
+  `include web-auth.cfg` to `fhem.cfg` when missing;
   generate `mqtt-connection.cfg` (Supervisor `/services/mqtt` with `mqtt:want`,
   manual `mqtt_*` fallback) and `web-auth.cfg`; install vendored
   `99_myUtils.pm` (marker-guarded, `{{FHEM_URL}}` substitution); `exec

@@ -2,7 +2,7 @@
 
 The complete documentation for the **hassio-fhem** app. The in-app
 **Documentation** tab shows the short setup guide
-([DOCS.md](https://github.com/tmtom/hassio-fhem/blob/v0.2.8-fhem6.5/fhem/DOCS.md));
+([DOCS.md](https://github.com/tmtom/hassio-fhem/blob/v0.2.9-fhem6.5/fhem/DOCS.md));
 everything else is here.
 
 - [Options reference](#options-reference)
@@ -30,7 +30,6 @@ everything else is here.
 | `fhem_url` | `http://homeassistant.local:8083/fhem` | Base URL of FHEMWEB used in Home Assistant → FHEM deep links (fhemMAX2HASS). `homeassistant.local` is the standard Home Assistant OS mDNS name — change it if your HA is reachable under a different name. |
 | `device` | *(unset, hidden)* | Serial device of the NanoCUL (dropdown of `/dev/serial/by-id/...` paths). `uart: true` already maps serial devices; setting this pins a specific one. |
 | `timezone` | *(unset, hidden)* | Timezone override. When unset, the app follows Home Assistant's timezone (read from the Home Assistant Core API; the app requests `homeassistant_api` for this read-only lookup). FHEM's clock is what the MAX! thermostats sync their weekly program to. |
-| `fhem_cfg` | *(unset, hidden, advanced)* | The complete FHEM configuration text as the source of truth (edited via *Edit in YAML* in the Configuration tab). When set, the app materializes `fhem.cfg` from it on every start (write-on-change) — the file becomes derived state and can never be lost, and the config is covered twice by Home Assistant backups. When unset (recommended), `fhem.cfg` in the config folder governs and is edited in FHEMWEB. |
 
 Hidden options appear behind **Show unused optional configuration options**
 in the Configuration tab.
@@ -68,17 +67,13 @@ Alternatives for power users:
   (also for editing included files and custom Perl modules). Note: the
   built-in *File editor* app only shows Home Assistant's own `/config`, not
   app configuration folders.
-- **`fhem_cfg` option (advanced):** paste the complete config into the option
-  (*Edit in YAML* in the Configuration tab) and the app keeps `fhem.cfg` in
-  sync with it. Handy for keeping the config in a versioned options backup;
-  awkward for large pastes (YAML block scalars need indentation).
 
 FHEM does not watch `fhem.cfg`: changes are picked up when FHEM reads the
 config — the FHEMWEB editor does that on Save; for edits made with other
 tools, **restart the app** or run `rereadcfg` in FHEMWEB.
 
 As a safety net, the FHEM image keeps a `fhem.cfg.bak` copy of the config on
-every start; if `fhem.cfg` ever goes missing (and `fhem_cfg` is not set), the
+every start; if `fhem.cfg` ever goes missing, the
 app restores that backup instead of installing the seed.
 
 ## Backups
@@ -175,8 +170,7 @@ config folder:
 
 1. Get your old `fhem.cfg` into the app. Easiest: copy the file (and any
    `99_myUtils.pm`, plus `./log` state you want to keep) into the app config
-   folder (`/opt/fhem`), or paste the content into the `fhem_cfg` option
-   (advanced, see above). Relative paths (`modpath .`, `./log/...`,
+   folder (`/opt/fhem`). Relative paths (`modpath .`, `./log/...`,
    `statefile ./log/fhem.save`) keep working unchanged — `/opt/fhem` is both
    working directory and persistent volume. Tip for the copy path: do it
    *before* the first start — the seed `fhem.cfg` is only installed when none

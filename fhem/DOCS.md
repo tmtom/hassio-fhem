@@ -11,7 +11,7 @@ Home Assistant over **MQTT** (including Home Assistant MQTT discovery).
 - MQTT broker credentials are picked up automatically from the Supervisor
   (e.g. the Mosquitto app) — no manual credential juggling needed.
 - Ships a clean stock FHEM setup. Port your own configuration with the
-  [porting guide](https://github.com/tmtom/hassio-fhem/blob/v0.2.8-fhem6.5/fhem/USER_GUIDE.md#porting-an-existing-fhem-config).
+  [porting guide](https://github.com/tmtom/hassio-fhem/blob/v0.2.9-fhem6.5/fhem/USER_GUIDE.md#porting-an-existing-fhem-config).
 
 ## Installation
 
@@ -67,4 +67,4 @@ with FHEM stopped (`backup: cold`), so they are consistent.
 
 Options reference, MQTT bridge setup, porting an existing FHEM config,
 troubleshooting and more — in
-**[USER_GUIDE.md](https://github.com/tmtom/hassio-fhem/blob/v0.2.8-fhem6.5/fhem/USER_GUIDE.md)**.
+**[USER_GUIDE.md](https://github.com/tmtom/hassio-fhem/blob/v0.2.9-fhem6.5/fhem/USER_GUIDE.md)**.

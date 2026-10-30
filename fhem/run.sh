@@ -6,8 +6,8 @@
 #   1. Read the Supervisor options from /data/options.json (Perl JSON::PP, core).
 #   2. On first start, seed the pinned FHEM tree and the generic seed config
 #      into the persistent /opt/fhem volume (the app_config mount).
-#   3. Materialize /opt/fhem/fhem.cfg from the fhem_cfg option when set
-#      (Configure tab = source of truth; otherwise the file itself governs).
+#   3. Make sure fhem.cfg includes the generated web-auth.cfg (appended when
+#      missing — otherwise web auth / the config editor silently do nothing).
 #   4. Generate /opt/fhem/mqtt-connection.cfg with broker credentials from the
 #      Supervisor services API (mqtt:want), falling back to the manual options.
 #   5. Generate /opt/fhem/web-auth.cfg (FHEMWEB basicAuth / editConfig).
@@ -110,35 +110,14 @@ elif [ ! -f "${FHEM_DIR}/fhem.cfg" ]; then
 fi
 
 #-----------------------------------------------------------------------------
-# 2b. Configuration source of truth: the fhem_cfg option (Configure tab).
-#     When set, fhem.cfg is derived state and is materialized from the option
-#     on every start (write-on-change). When empty, the file itself governs and
-#     content is never overwritten (the behavior of app versions <= 0.1.x).
-#     Either way the generated web-auth.cfg include is appended when missing —
-#     otherwise web auth / editConfig silently do nothing.
+# 2b. Make sure fhem.cfg loads the generated web-auth.cfg (web auth / editor):
+#     append the include when missing (idempotent). Otherwise the file itself
+#     governs and is never overwritten — only restored from fhem.cfg.bak or
+#     seeded when missing.
 #-----------------------------------------------------------------------------
-FHEM_CFG_OPT="$(opt fhem_cfg '')"
-CFG_CANDIDATE=/tmp/fhem.cfg.candidate
-if [ -n "${FHEM_CFG_OPT}" ]; then
-  printf '%s\n' "${FHEM_CFG_OPT}" | tr -d '\r' > "${CFG_CANDIDATE}"
-  CFG_MODE="option"
-else
-  cp "${FHEM_DIR}/fhem.cfg" "${CFG_CANDIDATE}"
-  CFG_MODE="file"
-fi
-if ! grep -qE '^[[:space:]]*include[[:space:]]+web-auth\.cfg[[:space:]]*$' "${CFG_CANDIDATE}"; then
-  printf '\ninclude web-auth.cfg\n' >> "${CFG_CANDIDATE}"
-  CFG_APPENDED=1
-fi
-if cmp -s "${CFG_CANDIDATE}" "${FHEM_DIR}/fhem.cfg"; then
-  [ "${CFG_MODE}" = "option" ] && log "fhem.cfg already matches the fhem_cfg option"
-else
-  cp "${CFG_CANDIDATE}" "${FHEM_DIR}/fhem.cfg"
-  if [ "${CFG_MODE}" = "option" ]; then
-    log "fhem.cfg materialized from the fhem_cfg option ($(wc -c < "${FHEM_DIR}/fhem.cfg" | tr -d ' ') bytes, md5 $(md5sum "${FHEM_DIR}/fhem.cfg" | cut -c1-8))"
-  else
-    log "appended 'include web-auth.cfg' to fhem.cfg (loads the generated web-auth.cfg)"
-  fi
+if ! grep -qE '^[[:space:]]*include[[:space:]]+web-auth\.cfg[[:space:]]*$' "${FHEM_DIR}/fhem.cfg"; then
+  printf '\ninclude web-auth.cfg\n' >> "${FHEM_DIR}/fhem.cfg"
+  log "appended 'include web-auth.cfg' to fhem.cfg (loads the generated web-auth.cfg)"
 fi
 
 if [ -d "${FHEM_DIR}/FHEM" ] && [ ! -f "${FHEM_DIR}/FHEM/controls.txt" ]; then
@@ -252,8 +231,8 @@ fi
 #    FHEM 6.x has no 'attr WEB basicAuth' — authentication is done by an
 #    'allowed' device bound to the FHEMWEB instance via validFor. Credentials
 #    stay out of the user's fhem.cfg; it needs an `include web-auth.cfg` after
-#    its WEB definition (the seed has it; configs materialized from fhem_cfg
-#    get it appended automatically).
+#    its WEB definition (the seed has it; run.sh appends it to existing configs
+#    automatically).
 #-----------------------------------------------------------------------------
 WEB_AUTH_USER="$(opt web_auth_user '')"
 WEB_AUTH_PASS="$(opt web_auth_password '')"

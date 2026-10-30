@@ -4,6 +4,13 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.9 (2026-10-30)
+
+- **Removed the `fhem_cfg` option** (UX review: it added noise for a feature
+  the primary flow replaced). `fhem.cfg` in the app config folder is the
+  single source of truth, edited in FHEMWEB's *Edit files* (applies on save).
+  If you had content stored in the option, paste it back into `fhem.cfg` once.
+
 ## 0.2.8 (2026-10-30)
 
 - **Fix "No changelog found for app …" in the update dialog:** the Supervisor

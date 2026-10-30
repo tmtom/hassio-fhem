@@ -32,9 +32,6 @@ configuration:
   timezone:
     name: "Timezone"
     description: "Optional override. When empty, the app follows the timezone of Home Assistant. FHEM's clock is what the MAX! thermostats sync their weekly program to."
-  fhem_cfg:
-    name: "FHEM configuration (advanced)"
-    description: "Optional: the complete fhem.cfg text as the source of truth (edit via Edit in YAML). When set, the app writes fhem.cfg from it on every start. When empty (recommended), the fhem.cfg file in the app config folder governs and is edited in FHEMWEB (Edit files)."
 network:
   8083/tcp: "FHEM web interface (FHEMWEB)"
   7072/tcp: "FHEM telnet console (optional)"
