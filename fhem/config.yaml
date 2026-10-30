@@ -1,5 +1,5 @@
 name: FHEM
-version: "0.2.3-fhem6.5"
+version: "0.2.4-fhem6.5"
 slug: fhem
 description: FHEM home automation — MAX! via NanoCUL, bridged to HA over MQTT
 url: https://github.com/tmtom/hassio-fhem/tree/main/fhem
@@ -19,7 +19,10 @@ ports_description:
   8083/tcp: FHEM web interface (FHEMWEB)
   7072/tcp: FHEM telnet console (optional)
 webui: http://[HOST]:[PORT:8083]/fhem
-watchdog: http://[HOST]:[PORT:8083]/fhem
+# TCP watchdog: an HTTP watchdog only counts status < 300 as healthy, but with
+# the web login enabled FHEMWEB answers 401 — the app would be restarted in a
+# loop. TCP proves FHEMWEB is up regardless of auth.
+watchdog: tcp://[HOST]:[PORT:8083]
 uart: true
 apparmor: true
 map:

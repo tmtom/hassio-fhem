@@ -30,8 +30,10 @@ ENV FHEM_SEEDED_VERSION=${FHEM_VERSION}
 # stock/ported configs — which also kept the app in "starting" for minutes in
 # the HA UI (the Supervisor resolves app state via container health). The tight
 # interval makes the app flip to "started" soon after FHEM is up.
+# Healthy when FHEMWEB answers — with web auth configured, a 401 proves both
+# FHEMWEB and the login are up (curl -f would treat it as a failure).
 HEALTHCHECK --interval=5s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -fsS -o /dev/null --max-time 8 http://localhost:8083/fhem || exit 1
+  CMD curl -sS -o /dev/null --max-time 8 -w '%{http_code}' http://localhost:8083/fhem | grep -qE '^(200|401)$' || exit 1
 
 # HA OS dialout group GID fix (from ZwergNase/KastB addon-fhem): the device nodes
 # mapped into the container are group-owned by GID 18 (dialout on HA OS), so the

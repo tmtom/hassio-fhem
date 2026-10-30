@@ -4,6 +4,15 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.4 (2026-10-30)
+
+- **Fix watchdog/health with web auth enabled:** the Supervisor's HTTP
+  watchdog only counts status < 300 as healthy, but a login-protected FHEMWEB
+  answers 401 — so the watchdog flagged the app as broken and **restarted it
+  in a loop**. The manifest watchdog is now `tcp://` (auth-independent) and
+  the container health check accepts `200`/`401` as alive.
+- Added `AGENTS.md` — project knowledge for future development sessions.
+
 ## 0.2.3 (2026-10-30)
 
 - **Fix the Info-tab documentation link:** the app's `README.md` used a
