@@ -54,7 +54,11 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
   It accepts HTTP `200`/`401` from FHEMWEB:8083 (401 = alive *and* auth
   working; `curl -f` would treat 401 as failure and flip the app to unhealthy
   whenever the web login is enabled). FHEMWEB must listen on 8083 (the
-  exposed port).
+  exposed port). A HEALTHCHECK also gates the UI state chip: the Supervisor
+  (`_derive_state`) keeps apps **with** a healthcheck in `STARTUP` ("starting")
+  until the first check resolves — apps without one show "running" instantly.
+  The lag is ≈ one check interval (a 5s interval made the state chip trail
+  ~4s behind; 3s since 0.2.10 feels instant).
 - **Manifest conventions** (enforced by `frenck/action-addon-linter` in the CI
   `Lint` workflow): omit keys that equal their defaults (`apparmor`, `boot`,
   `init` set explicitly only when non-default…), no `watchdog`, prefer
