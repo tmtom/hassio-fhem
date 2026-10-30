@@ -92,7 +92,7 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
   snippets rely on this).
 - FHEM 6.x requires a CSRF token (`fwcsrf`) for `?cmd=...` requests.
 
-## Development & testing (WSL2 + Docker)
+## Development & testing (any Linux with Docker — bare metal or WSL2)
 
 - Build: `docker build -t hassio-fhem-test:0.1.0 ./fhem`.
   **`docker restart` keeps the old image** — always `docker rm -f` + `docker run`.
@@ -105,7 +105,8 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
 - Smoke checks: `bash -n fhem/run.sh`; run the container; `docker logs | grep
   run.sh`; auth checks with `curl -w '%{http_code}'` (expect 401 anon /
   200 authed); the FHEMWEB edit-page check needs the CSRF token (`fwcsrf`
-  scraped from the page HTML).
+  scraped from the page HTML); before a release verify `translations/en.yaml`
+  `configuration:` keys == the manifest `schema:` keys exactly.
 - Personal data stays out of the repo: `/fhem.cfg.*` is gitignored (root-
   anchored so `fhem/rootfs/usr/src/templates/fhem.cfg.seed` stays tracked).
   No personal defaults (timezone, URLs): follow Home Assistant / generic HAOS
@@ -124,7 +125,7 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
 
 ## Development flow
 
-- **Debug locally first** (the WSL2 test rig above) — the fast iteration loop.
+- **Debug locally first** (the local test rig above) — the fast iteration loop.
   CI is validation, not a debugger.
 - **Branch + PR for app content** (`fhem/` changes): the `Builder` workflow
   builds PRs (both arches) and lints **without publishing** (`publish` is only
@@ -142,21 +143,16 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
 
 ## Roadmap / status
 
-- **Done — Phases 0–4:** environment; scaffold + image + seed + docs;
-  standalone WSL tests (mock Supervisor, fake MAX devices, persistence); on-HA
-  acceptance (NanoCUL, 8 devices, MQTT discovery, set-temperature round-trip,
-  backup round-trip); config UX (Configure-tab options, FHEMWEB editor with
-  login, timezone follows HA, translations, docs split).
-- **Phase 5 (CI/CD) — done:** `.github/workflows/` from
-  `home-assistant/apps-example` (`builder` + `build-app` with pinned
-  `home-assistant/builder` actions → multi-arch `ghcr.io/tmtom/hassio-fhem`,
-  publicly pullable, `lint` green); `bump-fhem.yaml` automates the release
-  procedure (weekly probe for new FHEM/base releases → bump PR; tag created on
-  merge). `image:` enabled — installs pull the pre-built image. **Exit test
-  passed (2026-10-30):** clean install from the GitHub repo pulled the image,
-  seeded on an empty volume, and the backup restore returned config + state.
-- **Phase 6 (optional):** FHEMWEB ingress experiment (proxying is tricky —
-  absolute URLs), telnet option docs, forum post, Renovate/Dependabot.
+**Complete (2026-10-30):** all development phases 0–5 — scaffold, local Docker
+tests, on-HA acceptance (NanoCUL, 8 devices, MQTT discovery, set-temperature
+round-trip, backup round-trip), config UX (Configure-tab options, FHEMWEB
+editor with login, timezone follows HA, translations, docs split), CI/CD
+(pre-built multi-arch images, lint, `bump-fhem` automation) and the
+clean-install + backup-restore exit test.
+
+**Optional wishlist (formerly Phase 6):** FHEMWEB ingress experiment
+(proxying is tricky — absolute URLs), telnet option docs, forum post,
+Renovate/Dependabot.
 
 ## User-facing principles (keep these!)
 
