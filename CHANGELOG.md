@@ -4,6 +4,14 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.6 (2026-10-30)
+
+- **Manifest cleanups per the official app linter:** removed `boot` and
+  `apparmor` (both match the defaults) and the `watchdog` key — it is
+  obsolete; the native Docker `HEALTHCHECK` is the health signal (which
+  accepts `200`/`401` since 0.2.4, so the web login no longer trips health
+  checks). CI `Lint` workflow is green.
+
 ## 0.2.5 (2026-10-30)
 
 - **Pre-built multi-arch images (CI/CD):** the app now installs from

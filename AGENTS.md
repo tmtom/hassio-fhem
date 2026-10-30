@@ -44,11 +44,16 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
   manual `mqtt_*` fallback) and `web-auth.cfg`; install vendored
   `99_myUtils.pm` (marker-guarded, `{{FHEM_URL}}` substitution); `exec
   /entry.sh start`.
-- **Health**: Docker `HEALTHCHECK` accepts HTTP `200`/`401` from FHEMWEB:8083
-  (401 = alive *and* auth working). The manifest `watchdog` is `tcp://` — the
-  Supervisor's HTTP watchdog counts only status < 300 as healthy and would
-  restart the app in a loop when web auth answers 401 (fixed in 0.2.4).
-  FHEMWEB must therefore listen on 8083 (the exposed port).
+- **Health**: the manifest `watchdog` key is **obsolete** (the official app
+  linter rejects it) — the native Docker `HEALTHCHECK` is the health signal.
+  It accepts HTTP `200`/`401` from FHEMWEB:8083 (401 = alive *and* auth
+  working; `curl -f` would treat 401 as failure and flip the app to unhealthy
+  whenever the web login is enabled). FHEMWEB must listen on 8083 (the
+  exposed port).
+- **Manifest conventions** (enforced by `frenck/action-addon-linter` in the CI
+  `Lint` workflow): omit keys that equal their defaults (`apparmor`, `boot`,
+  `init` set explicitly only when non-default…), no `watchdog`, prefer
+  `translations/` over `ports_description`.
 - **Config UX**: Configuration tab for options (labels/hints in
   `translations/en.yaml`); `fhem.cfg` is edited in FHEMWEB's *Edit files*
   editor, which is enabled together with the web login (`web-auth.cfg` →
