@@ -1,5 +1,5 @@
 name: FHEM
-version: "0.2.4-fhem6.5"
+version: "0.2.5-fhem6.5"
 slug: fhem
 description: FHEM home automation — MAX! via NanoCUL, bridged to HA over MQTT
 url: https://github.com/tmtom/hassio-fhem/tree/main/fhem
@@ -10,8 +10,8 @@ startup: services
 boot: auto
 init: false
 timeout: 60
-# Pre-built image is enabled in Phase 5; during development the app is built on device.
-# image: ghcr.io/tmtom/hassio-fhem
+# Pre-built multi-arch image, built by GitHub Actions on every release.
+image: ghcr.io/tmtom/hassio-fhem
 ports:
   8083/tcp: 8083
   7072/tcp: null

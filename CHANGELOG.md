@@ -4,6 +4,16 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.5 (2026-10-30)
+
+- **Pre-built multi-arch images (CI/CD):** the app now installs from
+  `ghcr.io/tmtom/hassio-fhem` (built by GitHub Actions per release for amd64
+  and aarch64) instead of building on the device — much faster installs and
+  updates. Repository builds (`/addons`) still work.
+- CI workflows adapted from `home-assistant/apps-example` (`builder`,
+  `build-app`, `lint`); the rebuild trigger also watches `run.sh`,
+  `apparmor.txt` and `translations/`.
+
 ## 0.2.4 (2026-10-30)
 
 - **Fix watchdog/health with web auth enabled:** the Supervisor's HTTP
