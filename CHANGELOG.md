@@ -4,6 +4,17 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.2.3 (2026-10-30)
+
+- **Fix the Info-tab documentation link:** the app's `README.md` used a
+  relative `[DOCS.md](DOCS.md)` link, which the rendered Info tab resolved
+  against the panel URL — a dead end. Links are now absolute GitHub URLs.
+- **Documentation links are versioned:** they point at the release tag
+  (`blob/v0.2.3-fhem6.5/...`) instead of the moving `main` branch, so the
+  linked docs match the installed app version. Each release rewrites the links
+  to its own tag (the in-app Documentation tab renders `DOCS.md` from the
+  repository checkout and may still differ from the installed image).
+
 ## 0.2.2 (2026-10-30)
 
 - **Config editing follows the FHEMWEB login:** the `web_edit_config` option is
