@@ -17,6 +17,10 @@ attr global verbose 3
 
 define WEB FHEMWEB 8083 global
 
+# To edit this configuration from the FHEM web UI ("Edit files"), enable:
+#attr WEB editConfig 1
+# Note: FHEMWEB has no login by default — set basicAuth together with this.
+
 # Fake FileLog entry, to access the fhem log from FHEMWEB
 define Logfile FileLog ./log/fhem-%Y-%m-%d.log Logfile
 

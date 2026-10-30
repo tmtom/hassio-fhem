@@ -39,6 +39,27 @@ log "Pinned FHEM version (image seed for new installs): ${FHEM_SEEDED_VERSION:-u
 
 mkdir -p "${FHEM_DIR}"
 
+# Fingerprint of the configuration for the log — makes "who overwrote my
+# fhem.cfg?" answerable from the app log alone.
+if [ -f "${FHEM_DIR}/fhem.cfg" ]; then
+  log "fhem.cfg present ($(wc -c < "${FHEM_DIR}/fhem.cfg" | tr -d ' ') bytes, md5 $(md5sum "${FHEM_DIR}/fhem.cfg" | cut -c1-8))"
+else
+  log "fhem.cfg NOT present in ${FHEM_DIR} at startup"
+fi
+
+# Install the generic seed configuration — but prefer restoring a previous
+# configuration (the FHEM image keeps fhem.cfg.bak on every start) so a user
+# config is never replaced by the seed just because the file went missing.
+install_seed_cfg() {
+  if [ -f "${FHEM_DIR}/fhem.cfg.bak" ]; then
+    log "fhem.cfg missing but fhem.cfg.bak found — restoring the backup instead of installing the seed"
+    cp -f "${FHEM_DIR}/fhem.cfg.bak" "${FHEM_DIR}/fhem.cfg"
+  else
+    log "No fhem.cfg found: installing generic seed configuration"
+    cp /usr/src/templates/fhem.cfg.seed "${FHEM_DIR}/fhem.cfg"
+  fi
+}
+
 #-----------------------------------------------------------------------------
 # 2. First-start seeding of the pinned FHEM tree and the generic configuration.
 #    Seeding fhem.pl up front makes /entry.sh skip its unpinned svn export.
@@ -52,12 +73,10 @@ if [ ! -f "${FHEM_DIR}/fhem.pl" ]; then
   [ -f "${FHEM_DIR}/fhem.cfg" ] && USER_CFG_PRESENT=1
   cp -an /usr/src/fhem-frozen/. "${FHEM_DIR}/"
   if [ "${USER_CFG_PRESENT}" = 0 ]; then
-    log "Installing generic seed configuration fhem.cfg"
-    cp /usr/src/templates/fhem.cfg.seed "${FHEM_DIR}/fhem.cfg"
+    install_seed_cfg
   fi
 elif [ ! -f "${FHEM_DIR}/fhem.cfg" ]; then
-  log "No fhem.cfg found: installing generic seed configuration"
-  cp /usr/src/templates/fhem.cfg.seed "${FHEM_DIR}/fhem.cfg"
+  install_seed_cfg
 fi
 
 if [ -d "${FHEM_DIR}/FHEM" ] && [ ! -f "${FHEM_DIR}/FHEM/controls.txt" ]; then

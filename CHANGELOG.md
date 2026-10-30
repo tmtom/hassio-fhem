@@ -4,6 +4,21 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.1.3 (2026-10-30)
+
+- **Backups fix:** `backup_exclude: ["log/*"]` also excluded the FHEM state
+  file `log/fhem.save` (and `log/eventTypes.txt`) — only `log/*.log` is
+  excluded now. Also switched to `backup: cold`, so FHEM saves its state on
+  shutdown before the snapshot is taken (consistent backups).
+- Safety net: if `fhem.cfg` is missing but `fhem.cfg.bak` exists (the FHEM
+  image keeps that copy on every start), the backup is restored instead of
+  installing the seed — user configurations survive unexpected file loss.
+- The startup log fingerprints `fhem.cfg` (size + md5) so configuration loss
+  is diagnosable from the app log alone.
+- Seed and docs: document editing the configuration (VS Code/Samba
+  `app_configs` folder, FHEMWEB `editConfig` with `basicAuth`), the
+  restart/`rereadcfg` pickup behavior, and the backup contents.
+
 ## 0.1.2 (2026-10-30)
 
 - Fix the container health check: the base image's `/health-check.sh` needs

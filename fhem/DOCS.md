@@ -51,6 +51,36 @@ containing a ready-made `define mqtt MQTT2_CLIENT ...` line with the discovered
 broker credentials. Include it from `fhem.cfg` or copy the lines into your own
 definition (credentials must not contain whitespace).
 
+## Editing the configuration
+
+No root or host SSH access is needed — pick one:
+
+- **VS Code or Samba add-on** (recommended): open the `..._fhem` folder under
+  `addon_configs` (shown as `app_configs` on newer systems) and edit `fhem.cfg`
+  in place. Note: the built-in *File editor* add-on only shows Home Assistant's
+  own `/config`; use VS Code or Samba for app configuration folders.
+- **From FHEMWEB**: enable in-place editing on the WEB definition with
+  `attr WEB editConfig 1` — and set `basicAuth` first; FHEMWEB has no login by
+  default.
+
+FHEM does not watch `fhem.cfg`: changes are picked up when FHEM reads the
+config — **restart the app**, or run `rereadcfg` in FHEMWEB.
+
+As a safety net, the FHEM image keeps a `fhem.cfg.bak` copy of the config on
+every start; if `fhem.cfg` ever goes missing, the app restores that backup
+instead of installing the seed.
+
+## Backups
+
+Everything that makes up your FHEM installation lives in the app config
+folder, so Home Assistant backups include it all: `fhem.cfg`, `FHEM/`
+(modules), the pinned tree, and the state (`log/fhem.save`,
+`log/eventTypes.txt`). Only `*.log` files are excluded.
+
+The app uses `backup: cold`: FHEM is briefly stopped during the backup, saves
+its state on shutdown, and the snapshot is taken — so the backup is consistent.
+Restoring that backup brings back configuration, modules and device state.
+
 On startup, the app logs the serial devices visible in the container
 (`/dev/serial/by-id/...`) — useful when defining the CUL device in `fhem.cfg`.
 This is only a listing: no device is opened or reconfigured. FHEM communicates
