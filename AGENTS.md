@@ -115,6 +115,24 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
 4. Commit, tag `v<version>`, `git push origin main --tags`. The tag must exist
    on the remote — the doc links point at it.
 
+## Development flow
+
+- **Debug locally first** (the WSL2 test rig above) — the fast iteration loop.
+  CI is validation, not a debugger.
+- **Branch + PR for app content** (`fhem/` changes): the `Builder` workflow
+  builds PRs (both arches) and lints **without publishing** (`publish` is only
+  true on push). Merge when green. Docs-only (`*.md`) and workflow-only pushes
+  to `main` do not trigger builds — the monitored-files filter watches
+  `config.yaml`, `Dockerfile`, `rootfs/`, `run.sh`, `apparmor.txt`,
+  `translations/`.
+- **Merge to `main` = release:** run the release procedure above in the same
+  commit. Never push app-content changes without a version bump — CI would
+  re-push the existing version tag with a different digest (mutable tag).
+- **Real-HA testing happens on the update** (it pulls the pre-built image).
+  For a change that must be validated on hardware before merging: sideload the
+  branch as a local app with `image:` temporarily commented (forces an
+  on-device build), or merge and fix forward — CI releases take ~1–2 minutes.
+
 ## Roadmap / status
 
 - **Done — Phases 0–4:** environment; scaffold + image + seed + docs;
