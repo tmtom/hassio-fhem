@@ -229,6 +229,13 @@ Home Assistant app updates and FHEM updates are **separate things**:
   one: open a window or press a button on a thermostat, or run
   `setreading <device> Activity alive` in FHEMWEB (the same event the MAX!
   modules generate).
+- **Commands seem ignored right after a restart** (`not enough credit ...
+  Waiting N seconds` in the log): the NanoCUL's MAX! firmware enforces an
+  airtime credit (868 MHz duty-cycle regulation, ~1 unit per second) and FHEM
+  schedules its send queue around it. After a restart FHEM resyncs with all
+  devices (SetGroupId housekeeping), which spends the credit pool — commands
+  then queue up and drain over the next minutes. Normal and self-healing;
+  steady-state commands go out within seconds.
 - **Watchdog turns the app unhealthy:** FHEM starts slowly on first boot; the
   watchdog checks `http://[HOST]:[PORT:8083]/fhem`. The app's health check
   probes the same URL, so FHEMWEB must listen on port 8083 (the port exposed
