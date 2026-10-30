@@ -32,9 +32,13 @@ window contacts via a NanoCUL USB stick, bridged to Home Assistant over MQTT
   export. `/entry.sh start` is the process supervisor (manifest `init: false`).
 - **Persistence**: everything lives in the `app_config` map at `/opt/fhem`
   (host: `/addon_configs/<repo>_fhem`) and is included in HA backups.
-  `backup: cold` (FHEM stops, saves state, snapshot), `backup_exclude` only
-  `log/*.log` — **never** exclude `log/fhem.save` (the FHEM state file) or
-  `FHEM/FhemUtils/uniqueID` (MQTT password keystore).
+  Uninstalling the app does **not** delete this folder (observed on HAOS
+  2026-10-30) — a reinstall reattaches the old config; move the folder aside
+  for a genuinely clean install. SIGTERM = FHEM `shutdown` → saves state
+  (`log/fhem.save`) before exit, which is what makes `backup: cold` snapshots
+  consistent. `backup_exclude` only `log/*.log` — **never** exclude
+  `log/fhem.save` (the FHEM state file) or `FHEM/FhemUtils/uniqueID`
+  (MQTT password keystore).
 - **`run.sh`** (order matters): options via Perl `JSON::PP` (`opt()` helper);
   timezone (hidden `timezone` option → HA Core API `time_zone`, which is why
   `homeassistant_api: true` → UTC fallback); first-start seeding of the frozen
