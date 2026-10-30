@@ -35,6 +35,7 @@ opt() {
 
 export TZ="$(opt timezone Europe/Prague)"
 log "Timezone: ${TZ}"
+log "Pinned FHEM version (image seed for new installs): ${FHEM_SEEDED_VERSION:-unknown}"
 
 mkdir -p "${FHEM_DIR}"
 

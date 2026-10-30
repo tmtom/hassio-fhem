@@ -141,6 +141,10 @@ Home Assistant app updates and FHEM updates are **separate things**:
   default `controls` mechanism), and the changes persist in the volume.
 - The pinned FHEM release baked into the image (see `CHANGELOG.md`) is only
   used to **seed brand-new installs**.
+- The app version embeds the pinned FHEM release (e.g. `0.1.2-fhem6.5`), so the
+  FHEM version is visible on the app info page. The actually running FHEM
+  version may be newer after using FHEM's `update` command — the log shows
+  `Featurelevel: <version>` at startup.
 
 ## Security notes
 
@@ -170,8 +174,9 @@ Home Assistant app updates and FHEM updates are **separate things**:
   MQTT bridge snippet above, device `mqttPublish`/`mqttSubscribe` attributes,
   and device activity (fhemMAX2HASS publishes on `:Activity` events).
 - **Watchdog turns the app unhealthy:** FHEM starts slowly on first boot; the
-  watchdog checks `http://[HOST]:[PORT:8083]/fhem`. Check the log tab for
-  startup errors.
+  watchdog checks `http://[HOST]:[PORT:8083]/fhem`. The app's health check
+  probes the same URL, so FHEMWEB must listen on port 8083 (the port exposed
+  by the manifest). Check the log tab for startup errors.
 - **Scripting FHEMWEB commands (`?cmd=...`):** FHEM 6.x requires a CSRF token
   for commands. Either fetch and pass the token (`fwcsrf` parameter) or, for
   trusted local setups, disable it on the FHEMWEB definition:

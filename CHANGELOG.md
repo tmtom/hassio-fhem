@@ -4,6 +4,18 @@ All notable changes to the FHEM app are documented here. The `version` in
 `fhem/config.yaml` is the source of truth; the baked FHEM version is tracked in
 `fhem/Dockerfile` (`ARG FHEM_VERSION`) and noted per release.
 
+## 0.1.2 (2026-10-30)
+
+- Fix the container health check: the base image's `/health-check.sh` needs
+  FHEM-side `DockerHealthCheck` attributes and stayed **permanently unhealthy**
+  with stock/ported configs. Since the Supervisor resolves the app state via
+  container health, the app appeared "stopped/starting" for minutes in the HA
+  UI. The health check now probes FHEMWEB directly on a tight cadence
+  (5s interval) — the app flips to "started" soon after FHEM is up.
+- The app version now carries the pinned FHEM release (e.g. `0.1.2-fhem6.5`),
+  so the FHEM version is visible on the app info page.
+- The startup log shows the pinned FHEM seed version.
+
 ## 0.1.1 (2026-10-30)
 
 - Fix MQTT credential auto-discovery on real Home Assistant: the Supervisor
